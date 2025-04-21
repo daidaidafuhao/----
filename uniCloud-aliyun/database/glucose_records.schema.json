@@ -1,0 +1,53 @@
+{
+	"bsonType": "object",
+	"required": ["user_id", "date", "fasting_glucose", "postprandial_glucose"],
+	"permission": {
+		"read": true,
+		"create": true,
+		"update": true,
+		"delete": true
+	},
+	"properties": {
+		"_id": {
+			"description": "记录ID，系统自动生成"
+		},
+		"user_id": {
+			"bsonType": "string",
+			"description": "用户ID，关联到users集合",
+			"foreignKey": "users._id"
+		},
+		"date": {
+			"bsonType": "date",
+			"description": "记录日期",
+			"label": "日期"
+		},
+		"fasting_glucose": {
+			"bsonType": "number",
+			"description": "空腹血糖值 (mmol/L)",
+			"label": "空腹血糖值",
+			"minimum": 0,
+			"maximum": 30
+		},
+		"postprandial_glucose": {
+			"bsonType": "number",
+			"description": "餐后两小时血糖值 (mmol/L)",
+			"label": "餐后血糖值",
+			"minimum": 0,
+			"maximum": 30
+		},
+		"create_date": {
+			"bsonType": "timestamp",
+			"description": "创建时间",
+			"defaultValue": {
+				"$env": "now"
+			}
+		},
+		"update_date": {
+			"bsonType": "timestamp",
+			"description": "更新时间",
+			"defaultValue": {
+				"$env": "now"
+			}
+		}
+	}
+} 

@@ -1,0 +1,110 @@
+
+.container {
+		padding: 20px;
+}
+.header {
+		margin-bottom: 20px;
+}
+.title {
+		font-size: 24px;
+		font-weight: bold;
+		color: #4095E5;
+}
+.filter-container {
+		background-color: #fff;
+		border-radius: 10px;
+		padding: 15px;
+		margin-bottom: 20px;
+		box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+.date-filter {
+		display: flex;
+		flex-direction: column;
+		margin-bottom: 10px;
+}
+.filter-label {
+		margin-bottom: 5px;
+		font-weight: bold;
+}
+.date-pickers {
+		display: flex;
+		align-items: center;
+}
+.date-separator {
+		margin: 0 10px;
+}
+.filter-button {
+		width: 100%;
+}
+.chart-container {
+		background-color: #fff;
+		border-radius: 10px;
+		padding: 15px;
+		margin-bottom: 20px;
+		box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+.chart-title {
+		font-size: 18px;
+		font-weight: bold;
+		margin-bottom: 10px;
+}
+.chart-legend {
+		display: flex;
+		margin-bottom: 15px;
+}
+.legend-item {
+		display: flex;
+		align-items: center;
+		margin-right: 20px;
+}
+.legend-color {
+		width: 15px;
+		height: 15px;
+		border-radius: 3px;
+		margin-right: 5px;
+}
+.chart-placeholder {
+		height: 200px;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		border: 1px dashed #ccc;
+		color: #999;
+}
+.list-container {
+		background-color: #fff;
+		border-radius: 10px;
+		padding: 15px;
+		box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+.list-header {
+		display: flex;
+		padding: 10px 0;
+		border-bottom: 1px solid #eee;
+		font-weight: bold;
+}
+.list-header-item {
+		flex: 1;
+		text-align: center;
+}
+.no-data {
+		padding: 30px 0;
+		text-align: center;
+		color: #999;
+}
+.record-list {
+		height: 300px;
+}
+.record-item {
+		display: flex;
+		padding: 12px 0;
+		border-bottom: 1px solid #f5f5f5;
+}
+.record-date {
+		flex: 1;
+		text-align: center;
+}
+.record-value {
+		flex: 1;
+		text-align: center;
+}

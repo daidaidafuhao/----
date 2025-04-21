@@ -1,0 +1,46 @@
+{
+  "pages": [
+    "pages/data-entry/index",
+    "pages/user-info/index",
+    "pages/history/index",
+    "pages/admin/index"
+  ],
+  "window": {
+    "navigationBarTextStyle": "white",
+    "navigationBarTitleText": "血糖监测",
+    "navigationBarBackgroundColor": "#4095E5",
+    "backgroundColor": "#F8F8F8"
+  },
+  "tabBar": {
+    "color": "#7A7E83",
+    "selectedColor": "#4095E5",
+    "borderStyle": "black",
+    "backgroundColor": "#ffffff",
+    "list": [
+      {
+        "pagePath": "pages/data-entry/index",
+        "iconPath": "static/icons/data-entry.png",
+        "selectedIconPath": "static/icons/data-entry-active.png",
+        "text": "填报"
+      },
+      {
+        "pagePath": "pages/history/index",
+        "iconPath": "static/icons/history.png",
+        "selectedIconPath": "static/icons/history-active.png",
+        "text": "历史"
+      },
+      {
+        "pagePath": "pages/user-info/index",
+        "iconPath": "static/icons/user.png",
+        "selectedIconPath": "static/icons/user-active.png",
+        "text": "个人"
+      }
+    ]
+  },
+  "permission": {
+    "scope.userLocation": {
+      "desc": "演示定位能力"
+    }
+  },
+  "usingComponents": {}
+}

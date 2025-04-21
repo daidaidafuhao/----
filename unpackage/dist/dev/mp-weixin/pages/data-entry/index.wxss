@@ -1,0 +1,21 @@
+
+.container {
+		padding: 20px;
+}
+.header {
+		margin-bottom: 30px;
+}
+.title {
+		font-size: 24px;
+		font-weight: bold;
+		color: #4095E5;
+}
+.form-container {
+		background-color: #fff;
+		border-radius: 10px;
+		padding: 15px;
+		box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+.form-button {
+		margin-top: 30px;
+}

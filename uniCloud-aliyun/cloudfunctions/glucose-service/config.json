@@ -1,0 +1,6 @@
+{
+	"timeout": 10,
+	"memorySize": 256,
+	"triggers": [],
+	"description": "血糖记录服务，提供血糖记录的增删改查功能"
+} 

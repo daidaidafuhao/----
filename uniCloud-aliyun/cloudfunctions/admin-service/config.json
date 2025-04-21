@@ -1,0 +1,6 @@
+{
+	"timeout": 20,
+	"memorySize": 512,
+	"triggers": [],
+	"description": "管理员服务，提供数据统计和导出功能"
+} 
