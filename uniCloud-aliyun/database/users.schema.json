@@ -1,0 +1,61 @@
+{
+	"bsonType": "object",
+	"required": ["name", "age", "gender"],
+	"permission": {
+		"read": true,
+		"create": true,
+		"update": true,
+		"delete": true
+	},
+	"properties": {
+		"_id": {
+			"description": "用户ID，系统自动生成"
+		},
+		"name": {
+			"bsonType": "string",
+			"description": "用户姓名",
+			"label": "姓名",
+			"minLength": 1,
+			"maxLength": 30
+		},
+		"age": {
+			"bsonType": "int",
+			"description": "用户年龄",
+			"label": "年龄",
+			"minimum": 1,
+			"maximum": 120
+		},
+		"gender": {
+			"bsonType": "string",
+			"description": "用户性别",
+			"label": "性别",
+			"enum": ["男", "女"]
+		},
+		"phone": {
+			"bsonType": "string",
+			"description": "用户联系电话",
+			"label": "联系电话",
+			"pattern": "^1[3-9]\\d{9}$"
+		},
+		"notes": {
+			"bsonType": "string",
+			"description": "备注信息",
+			"label": "备注信息",
+			"maxLength": 500
+		},
+		"create_date": {
+			"bsonType": "timestamp",
+			"description": "创建时间",
+			"defaultValue": {
+				"$env": "now"
+			}
+		},
+		"update_date": {
+			"bsonType": "timestamp",
+			"description": "更新时间",
+			"defaultValue": {
+				"$env": "now"
+			}
+		}
+	}
+} 

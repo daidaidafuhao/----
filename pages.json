@@ -1,0 +1,70 @@
+{
+	"pages": [
+		{
+			"path": "pages/data-entry/index",
+			"style": {
+				"navigationBarTitleText": "血糖填报",
+				"enablePullDownRefresh": false
+			}
+		},
+		{
+			"path": "pages/user-info/index",
+			"style": {
+				"navigationBarTitleText": "个人信息",
+				"enablePullDownRefresh": false
+			}
+		},
+		{
+			"path": "pages/history/index",
+			"style": {
+				"navigationBarTitleText": "历史记录",
+				"enablePullDownRefresh": true
+			}
+		},
+		{
+			"path": "pages/admin/index",
+			"style": {
+				"navigationBarTitleText": "管理",
+				"enablePullDownRefresh": false
+			}
+		}
+	],
+	"globalStyle": {
+		"navigationBarTextStyle": "white",
+		"navigationBarTitleText": "血糖监测",
+		"navigationBarBackgroundColor": "#4095E5",
+		"backgroundColor": "#F8F8F8"
+	},
+	"tabBar": {
+		"color": "#7A7E83",
+		"selectedColor": "#4095E5",
+		"borderStyle": "black",
+		"backgroundColor": "#ffffff",
+		"list": [
+			{
+				"pagePath": "pages/data-entry/index",
+				"iconPath": "static/icons/data-entry.png",
+				"selectedIconPath": "static/icons/data-entry-active.png",
+				"text": "填报"
+			},
+			{
+				"pagePath": "pages/history/index",
+				"iconPath": "static/icons/history.png",
+				"selectedIconPath": "static/icons/history-active.png",
+				"text": "历史"
+			},
+			{
+				"pagePath": "pages/user-info/index",
+				"iconPath": "static/icons/user.png",
+				"selectedIconPath": "static/icons/user-active.png",
+				"text": "个人"
+			}
+		]
+	},
+	"easycom": {
+		"autoscan": true,
+		"custom": {
+			"^uni-(.*)": "@/uni_modules/uni-$1/components/uni-$1/uni-$1.vue"
+		}
+	}
+}
