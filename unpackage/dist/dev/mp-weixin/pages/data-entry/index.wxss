@@ -10,12 +10,86 @@
 		font-weight: bold;
 		color: #4095E5;
 }
-.form-container {
-		background-color: #fff;
+.title-underline {
+		height: 4px;
+		width: 80px;
+		background-color: #4095E5;
+		margin-top: 8px;
+		border-radius: 2px;
+}
+.form-card {
+		background-color: #FAFAFA;
 		border-radius: 10px;
-		padding: 15px;
+		padding: 20px 15px;
 		box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+.grid-row {
+		display: flex;
+		flex-wrap: wrap;
+		margin: 0 -10px;
+}
+.grid-col {
+		flex: 1;
+		min-width: 200px;
+		padding: 0 10px;
+		margin-bottom: 15px;
+}
+.full-width {
+		width: 100%;
+}
+.label-right .uni-forms-item__label {
+		justify-content: flex-end;
+}
+.input-container {
+		display: flex;
+		align-items: center;
+		background-color: #FFFFFF;
+		border-radius: 4px;
+		border: 1px solid #EAEAEA;
+		padding: 0 10px;
+		transition: all 0.3s;
+}
+.input-container:focus-within {
+		border-color: #4095E5;
+		box-shadow: 0 0 5px rgba(64, 149, 229, 0.3);
+}
+.glucose-input {
+		flex: 1;
+}
+.unit-text {
+		color: #999;
+		margin-left: 5px;
+		font-size: 14px;
+}
+.date-picker-container {
+		display: flex;
+		align-items: center;
+}
+.date-picker {
+		flex: 1;
+}
+.date-nav-icon {
+		padding: 5px;
 }
 .form-button {
 		margin-top: 30px;
+		display: flex;
+		justify-content: center;
+}
+.btn-disabled {
+		background-color: #CCCCCC !important;
+		color: #FFFFFF !important;
+}
+.btn-enabled {
+		background-color: #07C160 !important;
+}
+.error-text {
+		color: #FF5151;
+		font-size: 12px;
+		margin-top: 4px;
+}
+	
+	/* 输入框聚焦态样式 */
+ .uni-easyinput__content-input:focus {
+		background-color: rgba(64, 149, 229, 0.05);
 }

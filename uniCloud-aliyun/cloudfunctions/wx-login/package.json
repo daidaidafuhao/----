@@ -1,0 +1,9 @@
+{
+  "name": "wx-login",
+  "version": "1.0.0",
+  "description": "微信小程序登录云函数",
+  "main": "index.js",
+  "dependencies": {},
+  "author": "",
+  "license": "ISC"
+} 

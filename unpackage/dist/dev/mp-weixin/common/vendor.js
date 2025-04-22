@@ -6431,7 +6431,7 @@ function populateParameters(fromRes, toRes) {
   let _SDKVersion = SDKVersion;
   const hostLanguage = (language || "").replace(/_/g, "-");
   const parameters = {
-    appId: "",
+    appId: "__UNI__0AF1FBD",
     appName: "血糖检测",
     appVersion: "1.0.0",
     appVersionCode: "100",
@@ -6580,7 +6580,7 @@ const getAppBaseInfo = {
       hostName: _hostName,
       hostSDKVersion: SDKVersion,
       hostTheme: theme,
-      appId: "",
+      appId: "__UNI__0AF1FBD",
       appName: "血糖检测",
       appVersion: "1.0.0",
       appVersionCode: "100",
@@ -7296,9 +7296,9 @@ function initOnError() {
   };
 }
 function initRuntimeSocketService() {
-  const hosts = "192.168.0.104,127.0.0.1,172.23.16.1";
+  const hosts = "192.168.0.104,127.0.0.1,172.25.96.1";
   const port = "8090";
-  const id = "mp-weixin_OyCX7z";
+  const id = "mp-weixin_le2BLh";
   const lazy = typeof swan !== "undefined";
   let restoreError = lazy ? () => {
   } : initOnError();
@@ -9959,6 +9959,13 @@ const Pinia = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.definePropert
 }, Symbol.toStringTag, { value: "Module" }));
 const pages = [
   {
+    path: "pages/login/index",
+    style: {
+      navigationBarTitleText: "用户登录",
+      enablePullDownRefresh: false
+    }
+  },
+  {
     path: "pages/data-entry/index",
     style: {
       navigationBarTitleText: "血糖填报",
@@ -9983,6 +9990,13 @@ const pages = [
     path: "pages/admin/index",
     style: {
       navigationBarTitleText: "管理",
+      enablePullDownRefresh: false
+    }
+  },
+  {
+    path: "pages/API/login/login",
+    style: {
+      navigationBarTitleText: "用户登录",
       enablePullDownRefresh: false
     }
   }
@@ -10320,10 +10334,10 @@ class v {
 function I(e2) {
   return e2 && "string" == typeof e2 ? JSON.parse(e2) : e2;
 }
-const S = true, b = "mp-weixin", T = I(define_process_env_UNI_SECURE_NETWORK_CONFIG_default), A = b, P = I(""), C = I("[]") || [];
+const S = true, b = "mp-weixin", T = I(define_process_env_UNI_SECURE_NETWORK_CONFIG_default), A = b, P = I('{"address":["127.0.0.1","192.168.0.104","172.25.96.1"],"servePort":7000,"debugPort":9000,"initialLaunchType":"remote","skipFiles":["<node_internals>/**","C:/Users/Administrator/HBuilderX.4.57.2025032507/HBuilderX/plugins/unicloud/**/*.js"]}'), C = I('[{"provider":"aliyun","spaceName":"trial-zetznrrk3ur0ldbec25","spaceId":"mp-aa7836c7-9ba2-41fd-8ff5-d2dd2ca73f0c","clientSecret":"Mt9RlD3OYFQ2qn4DxSxVkA==","endpoint":"https://api.next.bspapp.com"}]') || [];
 let O = "";
 try {
-  O = "";
+  O = "__UNI__0AF1FBD";
 } catch (e2) {
 }
 let L = {};
@@ -12871,7 +12885,7 @@ let tr = new class {
 })();
 var nr = tr;
 var define_process_env_UNI_STATISTICS_CONFIG_default = { version: "2", enable: true };
-var define_process_env_UNI_STAT_TITLE_JSON_default = { "pages/data-entry/index": "血糖填报", "pages/user-info/index": "个人信息", "pages/history/index": "历史记录", "pages/admin/index": "管理" };
+var define_process_env_UNI_STAT_TITLE_JSON_default = { "pages/login/index": "用户登录", "pages/data-entry/index": "血糖填报", "pages/user-info/index": "个人信息", "pages/history/index": "历史记录", "pages/admin/index": "管理", "pages/API/login/login": "用户登录" };
 var define_process_env_UNI_STAT_UNI_CLOUD_default = {};
 const sys = index$1.getSystemInfoSync();
 const STAT_VERSION = "4.57";
@@ -12881,7 +12895,7 @@ const PAGE_PVER_TIME = 1800;
 const APP_PVER_TIME = 300;
 const OPERATING_TIME = 10;
 const DIFF_TIME = 60 * 1e3 * 60 * 24;
-const appid = "";
+const appid = "__UNI__0AF1FBD";
 const dbSet = (name, value) => {
   let data = index$1.getStorageSync("$$STAT__DBDATA:" + appid) || {};
   if (!data) {
@@ -12919,7 +12933,7 @@ const dbRemove = (name) => {
 };
 const uniStatisticsConfig = define_process_env_UNI_STATISTICS_CONFIG_default;
 let statConfig = {
-  appid: ""
+  appid: "__UNI__0AF1FBD"
 };
 let titleJsons = {};
 titleJsons = define_process_env_UNI_STAT_TITLE_JSON_default;
@@ -13186,7 +13200,7 @@ const is_report_data = () => {
   });
 };
 const requestData = (done) => {
-  const appid2 = "";
+  const appid2 = "__UNI__0AF1FBD";
   let formData = {
     usv: STAT_VERSION,
     conf: JSON.stringify({
@@ -14033,7 +14047,9 @@ exports.f = f$1;
 exports.index = index$1;
 exports.index$1 = index;
 exports.initVueI18n = initVueI18n;
+exports.mapActions = mapActions$1;
 exports.mapMutations = mapMutations;
+exports.mapState = mapState$1;
 exports.n = n$1;
 exports.nr = nr;
 exports.o = o$1;
@@ -14042,4 +14058,5 @@ exports.resolveComponent = resolveComponent;
 exports.s = s$1;
 exports.sr = sr;
 exports.t = t$1;
+exports.wx$1 = wx$1;
 //# sourceMappingURL=../../.sourcemap/mp-weixin/common/vendor.js.map

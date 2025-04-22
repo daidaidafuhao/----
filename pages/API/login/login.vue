@@ -162,16 +162,47 @@
 									platform: 'mp-weixin'
 								}
 							},
-							success(res) {
+							success: (res) => {
 								console.log(res);
 								if (res.data.code !== 0) {
 									console.log('获取openid失败：', res.data.errMsg);
+									uni.showModal({
+										title: '登录失败',
+										content: '获取用户信息失败，请稍后再试',
+										showCancel: false
+									});
 									return
 								}
-								uni.setStorageSync('openid', res.data.openid)
+								// 存储openid和用户信息
+								uni.setStorageSync('openid', res.data.openid);
+								
+								// 获取用户信息
+								uni.getUserProfile({
+									desc: '用于完善会员资料',
+									success: (userInfo) => {
+										// 存储用户信息
+										uni.setStorageSync('userInfo', userInfo.userInfo);
+										
+										// 保存用户信息到数据库
+										this.saveUserInfo(res.data.openid, userInfo.userInfo);
+										
+										// 登录成功后返回上一页面
+										setTimeout(() => {
+											uni.navigateBack();
+										}, 1500);
+									},
+									fail: (err) => {
+										console.log('获取用户信息失败', err);
+									}
+								});
 							},
-							fail(err) {
+							fail: (err) => {
 								console.log('获取openid失败：', err);
+								uni.showModal({
+									title: '登录失败',
+									content: '网络请求失败，请检查网络连接',
+									showCancel: false
+								});
 							}
 						})
 						// #endif
@@ -309,6 +340,44 @@
 						})
 					}
 				})
+			},
+			// 添加保存用户信息的方法
+			saveUserInfo(openid, userInfo) {
+				uni.showLoading({
+					title: '保存用户信息'
+				});
+				
+				// 调用云函数保存用户信息
+				uniCloud.callFunction({
+					name: 'user-service',
+					data: {
+						action: 'saveWxUserInfo',
+						params: {
+							openid: openid,
+							nickName: userInfo.nickName,
+							avatarUrl: userInfo.avatarUrl,
+							gender: userInfo.gender,
+							country: userInfo.country,
+							province: userInfo.province,
+							city: userInfo.city
+						}
+					},
+					success: (res) => {
+						uni.hideLoading();
+						if (res.result.code === 0) {
+							uni.showToast({
+								title: '登录成功',
+								duration: 1500
+							});
+						} else {
+							console.error('保存用户信息失败', res.result);
+						}
+					},
+					fail: (err) => {
+						uni.hideLoading();
+						console.error('调用云函数失败', err);
+					}
+				});
 			}
 		}
 	}

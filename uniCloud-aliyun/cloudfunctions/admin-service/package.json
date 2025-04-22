@@ -1,0 +1,11 @@
+{
+  "name": "admin-service",
+  "version": "1.0.0",
+  "description": "管理员服务云函数 - 提供数据统计和导出功能",
+  "main": "index.js",
+  "dependencies": {
+    "xlsx": "^0.18.5"
+  },
+  "author": "",
+  "license": "ISC"
+} 

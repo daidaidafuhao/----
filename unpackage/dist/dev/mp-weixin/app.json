@@ -1,9 +1,11 @@
 {
   "pages": [
+    "pages/login/index",
     "pages/data-entry/index",
     "pages/user-info/index",
     "pages/history/index",
-    "pages/admin/index"
+    "pages/admin/index",
+    "pages/API/login/login"
   ],
   "window": {
     "navigationBarTextStyle": "white",

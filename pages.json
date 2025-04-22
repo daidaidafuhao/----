@@ -1,6 +1,13 @@
 {
 	"pages": [
 		{
+			"path": "pages/login/index",
+			"style": {
+				"navigationBarTitleText": "用户登录",
+				"enablePullDownRefresh": false
+			}
+		},
+		{
 			"path": "pages/data-entry/index",
 			"style": {
 				"navigationBarTitleText": "血糖填报",
@@ -25,6 +32,13 @@
 			"path": "pages/admin/index",
 			"style": {
 				"navigationBarTitleText": "管理",
+				"enablePullDownRefresh": false
+			}
+		},
+		{
+			"path": "pages/API/login/login",
+			"style": {
+				"navigationBarTitleText": "用户登录",
 				"enablePullDownRefresh": false
 			}
 		}
