@@ -36,6 +36,13 @@
 			}
 		},
 		{
+			"path": "pages/admin/add-admin",
+			"style": {
+				"navigationBarTitleText": "管理员授权",
+				"enablePullDownRefresh": false
+			}
+		},
+		{
 			"path": "pages/API/login/login",
 			"style": {
 				"navigationBarTitleText": "用户登录",

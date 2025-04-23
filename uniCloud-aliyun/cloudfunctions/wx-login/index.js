@@ -2,10 +2,11 @@
 
 // 微信小程序配置信息
 const wxConfig = {
-  appid: 'wxa0d3f6e827e77411', // 填入您的微信小程序appid
-  secret: 'f3806f4493c956c65c93e4b8cb4c127d' // 填入您的微信小程序secret
+  appid: '	wx5891aec381d1839a', // 填入您的微信小程序appid
+  secret: '1dc7f0c81aa2f934e69e0173a9e031f5' // 填入您的微信小程序secret
 };
-
+const db = uniCloud.database();
+const usersCollection = db.collection('users');
 exports.main = async (event, context) => {
   try {
     // 获取客户端传来的code
@@ -36,29 +37,31 @@ exports.main = async (event, context) => {
       };
     }
     
-    // 初始化数据库
-    const db = uniCloud.database();
+    // 从微信返回数据中获取openid
+    const { openid } = data;
     
-    // 从admin_config集合中检查用户是否为管理员
-    let isAdmin = false;
-    try {
-      // 查询管理员配置
-      const adminConfigResult = await db.collection('admin_config').get();
-      
-      // 如果配置存在且非空
-      if (adminConfigResult.data && adminConfigResult.data.length > 0) {
-        // 从配置中获取管理员列表
-        const adminOpenIds = adminConfigResult.data[0].admin_openids || [];
+    // 检查用户是否存在
+    const userResult = await usersCollection.where({ openid }).limit(1).get();
         
-        // 检查当前用户是否在管理员列表中
-        isAdmin = adminOpenIds.includes(data.openid);
-      }
-    } catch (error) {
-      console.error('检查管理员权限出错', error);
-      // 出错时默认为非管理员，不影响登录流程
+    if(!(userResult.data && userResult.data.length > 0)) {
+      // 用户不存在，创建新用户
+      const newUserData = {
+        openid,
+        wxUserInfo: "",
+        nickName: "",
+        avatarUrl: "",
+        createTime: new Date().getTime(),
+        updateTime: new Date().getTime()
+      };
+      
+      // 添加新用户到数据库
+      const addResult = await usersCollection.add(newUserData);
+      console.log('创建新用户成功:', addResult);
+    } else {
+      console.log('用户已存在:', openid);
     }
     
-    // 返回openid等信息，以及管理员状态
+    // 返回openid等信息
     return {
       code: 0,
       msg: '登录成功',
@@ -67,11 +70,11 @@ exports.main = async (event, context) => {
         // session_key不应该返回给客户端，这里仅做演示
         // 实际应用中建议存储在云端，并返回自定义登录态标识
         session_key: data.session_key,
-        isAdmin: isAdmin
       }
     };
     
   } catch (error) {
+    console.error('登录出错:', error);
     return {
       code: -3,
       msg: '云函数执行异常',

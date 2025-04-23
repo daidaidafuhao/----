@@ -1,1 +1,1 @@
-{"version":3,"file":"assets.js","sources":["../../../../../static/icons/user-avatar-placeholder.png"],"sourcesContent":["export default \"/static/icons/user-avatar-placeholder.png\""],"names":[],"mappings":";AAAA,MAAe,aAAA;;"}
+{"version":3,"file":"assets.js","sources":["../../../../../static/icons/user-avatar-placeholder.png","static/image/addadmin.jpg"],"sourcesContent":["export default \"/static/icons/user-avatar-placeholder.png\"","export default \"__VITE_ASSET__27cfa631__\""],"names":[],"mappings":";AAAA,MAAe,eAAA;ACAf,MAAe,aAAA;;;"}

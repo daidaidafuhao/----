@@ -9,6 +9,7 @@ if (!Math) {
   "./pages/user-info/index.js";
   "./pages/history/index.js";
   "./pages/admin/index.js";
+  "./pages/admin/add-admin.js";
   "./pages/API/login/login.js";
 }
 const _sfc_main = {

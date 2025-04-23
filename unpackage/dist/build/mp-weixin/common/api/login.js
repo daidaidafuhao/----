@@ -1,0 +1,1 @@
+"use strict";const e=require("../vendor.js"),r=require("./wechat.js");require("../../store/index.js"),exports.checkLoginAndRedirect=function(){return!!r.getWechatLoginState().isLoggedIn||(e.index.redirectTo({url:"/pages/login/index"}),!1)};

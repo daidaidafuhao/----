@@ -103,7 +103,7 @@
 								uni.hideLoading();
 								console.error('云函数调用失败', err);
 								uni.showToast({
-									title: '登录失败，请检查网络',
+									title: '登录失败，请检查网络'+err.errMsg,
 									icon: 'none'
 								});
 								this.loading = false;

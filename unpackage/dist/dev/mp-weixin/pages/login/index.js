@@ -70,7 +70,7 @@ const _sfc_main = {
               common_vendor.index.hideLoading();
               common_vendor.index.__f__("error", "at pages/login/index.vue:104", "云函数调用失败", err);
               common_vendor.index.showToast({
-                title: "登录失败，请检查网络",
+                title: "登录失败，请检查网络" + err.errMsg,
                 icon: "none"
               });
               this.loading = false;

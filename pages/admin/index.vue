@@ -6,6 +6,13 @@
 		
 		<view class="admin-container">
 			<view class="admin-panel">
+				<view class="panel-title">管理员管理</view>
+				<view class="panel-content">
+					<button class="admin-button" @click="showQRCode">添加新管理员</button>
+				</view>
+			</view>
+			
+			<view class="admin-panel">
 				<view class="panel-title">导出数据</view>
 				<view class="panel-content">
 					<view class="export-options">
@@ -78,6 +85,16 @@
 				</view>
 			</view>
 		</view>
+		
+		<!-- QR Code Modal -->
+		<view class="qr-modal" v-if="showQRModal" @click="hideQRCode">
+			<view class="qr-content" @click.stop>
+				<view class="qr-title">管理员注册二维码</view>
+				<view class="qr-description">扫描下方二维码成为管理员</view>
+				<image class="qr-image" src="/static/image/addadmin.jpg" mode="aspectFit"></image>
+				<button class="qr-close" @click="hideQRCode">关闭</button>
+			</view>
+		</view>
 	</view>
 </template>
 
@@ -97,7 +114,8 @@
 				recordCount: 0,
 				lastWeekCount: 0,
 				activeUserCount: 0,
-				loading: false
+				loading: false,
+				showQRModal: false  // 控制QR码弹窗显示
 			}
 		},
 		created() {
@@ -110,6 +128,16 @@
 			this.loadStatistics();
 		},
 		methods: {
+			// 显示QR码弹窗
+			showQRCode() {
+				this.showQRModal = true;
+			},
+			
+			// 隐藏QR码弹窗
+			hideQRCode() {
+				this.showQRModal = false;
+			},
+			
 			loadStatistics() {
 				const openid = uni.getStorageSync('openid');
 				if (!openid) {
@@ -765,6 +793,19 @@
 		width: 100%;
 	}
 	
+	/* 添加管理员按钮样式 */
+	.admin-button {
+		display: block;
+		width: 100%;
+		background-color: #4095E5;
+		color: #fff;
+		padding: 12px 0;
+		text-align: center;
+		border-radius: 5px;
+		font-size: 16px;
+		margin-bottom: 10px;
+	}
+	
 	.stats-grid {
 		display: flex;
 		flex-wrap: wrap;
@@ -786,5 +827,57 @@
 	
 	.stats-label {
 		color: #666;
+	}
+	
+	/* QR码弹窗样式 */
+	.qr-modal {
+		position: fixed;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		background-color: rgba(0, 0, 0, 0.6);
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		z-index: 999;
+	}
+	
+	.qr-content {
+		background-color: #fff;
+		border-radius: 10px;
+		padding: 20px;
+		width: 80%;
+		max-width: 320px;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+	}
+	
+	.qr-title {
+		font-size: 18px;
+		font-weight: bold;
+		margin-bottom: 10px;
+		color: #4095E5;
+	}
+	
+	.qr-description {
+		font-size: 14px;
+		color: #666;
+		margin-bottom: 20px;
+		text-align: center;
+	}
+	
+	.qr-image {
+		width: 200px;
+		height: 200px;
+		margin-bottom: 20px;
+	}
+	
+	.qr-close {
+		width: 80%;
+		margin-top: 10px;
+		background-color: #4095E5;
+		color: #fff;
 	}
 </style> 

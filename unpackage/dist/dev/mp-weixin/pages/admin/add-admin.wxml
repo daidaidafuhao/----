@@ -1,0 +1,1 @@
+<view class="container"><view class="header"><text class="title">管理员授权</text></view><view class="content"><view class="message-box"><text wx:if="{{a}}" class="loading-text">正在处理中...</text><text wx:elif="{{b}}" class="success-icon">✓</text><text wx:else class="message-text">{{c}}</text></view></view></view>
