@@ -317,8 +317,8 @@ exports.main = async (event, context) => {
 					
 					// 第一行：标题行
 					const titleRow = ['日常身体数据记录'];
-					// 为标题行填充空值，使其与最大列数一致（用户信息 + 日期*2列）
-					for (let i = 0; i < 12 + dates.length * 2; i++) {
+					// 为标题行填充空值，使其与最大列数一致（用户信息 + 日期*3列）
+					for (let i = 0; i < 12 + dates.length * 3; i++) {
 						titleRow.push('');
 					}
 					allRows.push(titleRow);
@@ -328,13 +328,15 @@ exports.main = async (event, context) => {
 					dates.forEach(() => {
 						typeRow.push('餐前');
 						typeRow.push('餐后');
+						typeRow.push('血压');
 					});
 					
 					// 第二行：日期行
 					const dateRow = ['', '', '', '', '', '', '', '', '', '', '', ''];  // 用户信息列留空，共12列
 					dates.forEach(date => {
-						dateRow.push(date);  // 每个日期占两列，但只写一次
-						dateRow.push('');    // 第二列留空，后面通过合并单元格处理
+						dateRow.push(date);  // 每个日期占三列，但只写一次
+						dateRow.push('');    
+						dateRow.push('');    // 第三列也留空，后面通过合并单元格处理
 					});
 					
 					// 按顺序添加行
@@ -342,7 +344,7 @@ exports.main = async (event, context) => {
 					allRows.push(typeRow);
 					
 					// 设置标题行合并单元格
-					const titleRange = { s: { r: 0, c: 0 }, e: { r: 0, c: 12 + dates.length * 2 - 1 } };
+					const titleRange = { s: { r: 0, c: 0 }, e: { r: 0, c: 12 + dates.length * 3 - 1 } };
 					
 					// 数据行
 					users.forEach((user, index) => {
@@ -372,6 +374,7 @@ exports.main = async (event, context) => {
 							
 							row.push(record ? record.fasting_glucose : ''); // 空腹血糖
 							row.push(record ? record.postprandial_glucose : ''); // 餐后血糖
+							row.push(record && record.blood_pressure ? record.blood_pressure : ''); // 血压
 						});
 						
 						allRows.push(row);
@@ -386,8 +389,8 @@ exports.main = async (event, context) => {
 					
 					// 设置日期合并单元格
 					dates.forEach((_, idx) => {
-						const dateColStart = 12 + idx * 2;
-						const dateRange = { s: { r: 1, c: dateColStart }, e: { r: 1, c: dateColStart + 1 } };
+						const dateColStart = 12 + idx * 3; // 修改为3列
+						const dateRange = { s: { r: 1, c: dateColStart }, e: { r: 1, c: dateColStart + 2 } }; // 合并3列
 						worksheet['!merges'].push(dateRange);
 					});
 					
@@ -411,6 +414,7 @@ exports.main = async (event, context) => {
 					dates.forEach(() => {
 						worksheet['!cols'].push({ wch: 10 }); // 餐前
 						worksheet['!cols'].push({ wch: 10 }); // 餐后
+						worksheet['!cols'].push({ wch: 10 }); // 血压
 					});
 					
 					// 尝试设置单元格样式
@@ -510,14 +514,14 @@ exports.main = async (event, context) => {
 					// 第二行：日期
 					csv += ',,,,,,,,,,,,';  // 前12列留空
 					dates.forEach(date => {
-						csv += `,"${date}",`;  // 每个日期占两列
+						csv += `,"${date}",`;  // 每个日期占三列
 					});
 					csv += '\r\n';
 					
 					// 第三行：血糖类型
 					csv += '编号,姓名(监测用户),联系方式,联系人(负责联系监测用户的人),备注,性别,电话,身高(m),体重(kg),BMI,血压(mmHg),基础疾病';
 					dates.forEach(() => {
-						csv += ',餐前,餐后';
+						csv += ',餐前,餐后,血压';
 					});
 					csv += '\r\n';
 					
@@ -536,7 +540,7 @@ exports.main = async (event, context) => {
 						csv += `"${user.bloodPressure || ''}",`;
 						csv += `"${user.basicDisease || ''}"`;
 						
-						// 添加每个日期的血糖值（空腹和餐后）
+						// 添加每个日期的血糖值（空腹和餐后）和血压
 						dates.forEach(date => {
 							// 尝试通过user._id查找记录
 							let record = recordsByDate[date] && recordsByDate[date][user._id];
@@ -547,6 +551,7 @@ exports.main = async (event, context) => {
 							
 							csv += `,${record ? record.fasting_glucose : ''}`;
 							csv += `,${record ? record.postprandial_glucose : ''}`;
+							csv += `,${record && record.blood_pressure ? record.blood_pressure : ''}`;
 						});
 						
 						csv += '\r\n';

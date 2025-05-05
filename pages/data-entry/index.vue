@@ -9,17 +9,17 @@
 			<uni-forms :modelValue="formData" ref="form" :rules="rules" validateTrigger="bind">
 				<view class="grid-row">
 					<view class="grid-col" :class="{ 'full-width': isNarrowScreen }">
-						<uni-forms-item label="日期" required class="label-right">
+						<uni-forms-item label="日期" class="label-right">
 							<view class="date-picker-container">
 								<uni-icons type="left" size="20" color="#666" @click="changeDate(-1)" class="date-nav-icon" />
-								<uni-datetime-picker type="date" v-model="formData.date" class="date-picker" />
+								<uni-datetime-picker type="date" v-model="formData.date" class="date-picker" @change="checkExistingRecord" />
 								<uni-icons type="right" size="20" color="#666" @click="changeDate(1)" class="date-nav-icon" />
 							</view>
 						</uni-forms-item>
 					</view>
 					
 					<view class="grid-col" :class="{ 'full-width': isNarrowScreen }">
-						<uni-forms-item label="空腹血糖值" required class="label-right">
+						<uni-forms-item label="空腹血糖值" class="label-right">
 							<view class="input-container">
 								<uni-easyinput type="digit" v-model="formData.fastingGlucose" 
 									placeholder="请输入" 
@@ -33,7 +33,7 @@
 					</view>
 					
 					<view class="grid-col" :class="{ 'full-width': isNarrowScreen }">
-						<uni-forms-item label="餐后两小时血糖值" required class="label-right">
+						<uni-forms-item label="餐后两小时血糖值" class="label-right">
 							<view class="input-container">
 								<uni-easyinput type="digit" v-model="formData.postprandialGlucose" 
 									placeholder="请输入" 
@@ -43,17 +43,36 @@
 								<text class="unit-text">mmol/L</text>
 							</view>
 							<text v-if="glucoseErrors.postprandialGlucose" class="error-text">{{glucoseErrors.postprandialGlucose}}</text>
+							<text v-if="!formData.postprandialGlucose && formData.fastingGlucose" class="tip-text">餐后血糖可稍后填写</text>
+						</uni-forms-item>
+					</view>
+					
+					<!-- 新增血压输入框 -->
+					<view class="grid-col" :class="{ 'full-width': isNarrowScreen }">
+						<uni-forms-item label="血压" class="label-right">
+							<view class="input-container">
+								<uni-easyinput type="text" v-model="formData.bloodPressure" 
+									placeholder="请输入(例如:120/80)" 
+									class="glucose-input" 
+									:input-border="false" />
+								<text class="unit-text">mmHg</text>
+							</view>
+							<text class="tip-text">选填项，格式如:120/80</text>
 						</uni-forms-item>
 					</view>
 				</view>
 				
 				<view class="form-button">
-					<button :type="isFormValid ? 'primary' : 'default'" 
+					<button :type="canSubmit ? 'primary' : 'default'" 
 						@click="submitForm" 
-						:disabled="!isFormValid" 
-						:class="{ 'btn-disabled': !isFormValid, 'btn-enabled': isFormValid }">
-						提交
+						:disabled="!canSubmit" 
+						:class="{ 'btn-disabled': !canSubmit, 'btn-enabled': canSubmit }">
+						{{ submitButtonText }}
 					</button>
+				</view>
+				
+				<view v-if="existingRecord" class="record-info">
+					<text class="record-info-text">{{ getRecordInfoText() }}</text>
 				</view>
 			</uni-forms>
 		</view>
@@ -70,7 +89,8 @@
 				formData: {
 					date: this.getCurrentDate(),
 					fastingGlucose: '',
-					postprandialGlucose: ''
+					postprandialGlucose: '',
+					bloodPressure: '' // 新增血压字段
 				},
 				glucoseErrors: {
 					fastingGlucose: '',
@@ -78,32 +98,33 @@
 				},
 				rules: {
 					date: {
-						rules: [{
-							required: true,
-							errorMessage: '请选择日期'
-						}]
+						rules: []
 					},
 					fastingGlucose: {
-						rules: [{
-							required: true,
-							errorMessage: '请输入空腹血糖值'
-						}]
+						rules: []
 					},
 					postprandialGlucose: {
-						rules: [{
-							required: true,
-							errorMessage: '请输入餐后两小时血糖值'
-						}]
+						rules: []
 					}
+					// 血压为选填项，不添加验证规则
 				},
-				isNarrowScreen: false
+				isNarrowScreen: false,
+				existingRecord: null, // 存储当前日期已有的记录
+				recordId: null // 已有记录的ID
 			}
 		},
 		computed: {
-			isFormValid() {
+			canSubmit() {
+				// 新逻辑：至少填写一项血糖值即可提交
 				return this.formData.date && 
-					this.formData.fastingGlucose && 
-					this.formData.postprandialGlucose;
+					(this.formData.fastingGlucose || this.formData.postprandialGlucose ||
+					 (this.existingRecord && (this.existingRecord.fastingGlucose || this.existingRecord.postprandialGlucose)));
+			},
+			submitButtonText() {
+				if (this.existingRecord) {
+					return '更新记录';
+				}
+				return '提交';
 			}
 		},
 		onLoad() {
@@ -115,8 +136,8 @@
 			// 检测屏幕宽度，决定布局
 			this.checkScreenWidth();
 			
-			// 原有的onLoad逻辑
-			// ... existing code ...
+			// 检查当天是否已有记录
+			this.checkExistingRecord();
 		},
 		onShow() {
 			// 每次页面显示时检查登录状态
@@ -124,10 +145,76 @@
 				return; // 用户未登录，已重定向到登录页面
 			}
 			
-			// 原有的onShow逻辑
-			// ... existing code ...
+			// 检查当天是否已有记录
+			this.checkExistingRecord();
 		},
 		methods: {
+			getRecordInfoText() {
+				let text = "当前日期已有记录: ";
+				if (this.existingRecord.fastingGlucose && this.existingRecord.postprandialGlucose) {
+					text += `空腹 ${this.existingRecord.fastingGlucose}mmol/L，餐后 ${this.existingRecord.postprandialGlucose}mmol/L`;
+				} else if (this.existingRecord.fastingGlucose) {
+					text += `空腹 ${this.existingRecord.fastingGlucose}mmol/L`;
+				} else if (this.existingRecord.postprandialGlucose) {
+					text += `餐后 ${this.existingRecord.postprandialGlucose}mmol/L`;
+				}
+				return text;
+			},
+			checkExistingRecord() {
+				const loginState = getWechatLoginState();
+				if (!loginState.isLoggedIn) {
+					return;
+				}
+				
+				// 重置现有记录
+				this.existingRecord = null;
+				this.recordId = null;
+				
+				// 显示加载提示
+				uni.showLoading({
+					title: '查询记录...'
+				});
+				
+				// 调用云函数查询当前日期是否已有记录
+				uniCloud.callFunction({
+					name: 'glucose-service',
+					data: {
+						action: 'getByDate',
+						params: {
+							userId: loginState.userInfo._id || loginState.openid,
+							date: this.formData.date
+						}
+					}
+				}).then(res => {
+					uni.hideLoading();
+					if (res.result && res.result.code === 0 && res.result.data) {
+						// 找到了已有记录
+						this.existingRecord = res.result.data;
+						this.recordId = res.result.data._id;
+						
+						// 移除自动跳转到下一天的逻辑，始终显示当前日期的记录
+						// 即使记录已经完整，也允许用户查看和修改
+						
+						// 预填已有数据
+						if (!this.formData.fastingGlucose && this.existingRecord.fastingGlucose) {
+							this.formData.fastingGlucose = this.existingRecord.fastingGlucose;
+						}
+						if (!this.formData.postprandialGlucose && this.existingRecord.postprandialGlucose) {
+							this.formData.postprandialGlucose = this.existingRecord.postprandialGlucose;
+						}
+						if (!this.formData.bloodPressure && this.existingRecord.bloodPressure) {
+							this.formData.bloodPressure = this.existingRecord.bloodPressure;
+						}
+					} else {
+						// 没有找到记录
+						this.existingRecord = null;
+						this.recordId = null;
+					}
+				}).catch(err => {
+					uni.hideLoading();
+					console.error('查询记录失败', err);
+				});
+			},
 			checkScreenWidth() {
 				const info = uni.getSystemInfoSync();
 				this.isNarrowScreen = info.windowWidth < 600; // 小于600px认为是窄屏
@@ -146,6 +233,9 @@
 				const month = (currentDate.getMonth() + 1).toString().padStart(2, '0');
 				const day = currentDate.getDate().toString().padStart(2, '0');
 				this.formData.date = `${year}-${month}-${day}`;
+				
+				// 日期变更时检查是否有记录
+				this.checkExistingRecord();
 			},
 			validateGlucose(field) {
 				const value = parseFloat(this.formData[field]);
@@ -185,98 +275,124 @@
 				}
 			},
 			submitForm() {
-				if (!this.isFormValid) {
+				if (!this.canSubmit) {
 					return;
 				}
 				
-				this.$refs.form.validate().then(res => {
-					if (res) {
-						// 额外验证血糖值
-						this.validateGlucose('fastingGlucose');
-						this.validateGlucose('postprandialGlucose');
-						
-						// 如果有异常血糖值，只显示提示，但不阻止提交
-						if (this.glucoseErrors.fastingGlucose || this.glucoseErrors.postprandialGlucose) {
-							uni.showToast({
-								title: '血糖值异常，但仍可提交',
-								icon: 'none',
-								duration: 2000
-							});
-						}
-						
-						// 显示加载提示
-						uni.showLoading({
-							title: '提交中...'
+				// 如果没有填写任何血糖值，提示用户
+				if (!this.formData.fastingGlucose && !this.formData.postprandialGlucose &&
+					!this.existingRecord) {
+					uni.showToast({
+						title: '请至少填写一项血糖值',
+						icon: 'none'
+					});
+					return;
+				}
+				
+				// 直接执行提交，无需调用表单验证
+				// 额外验证血糖值
+				if (this.formData.fastingGlucose) {
+					this.validateGlucose('fastingGlucose');
+				}
+				if (this.formData.postprandialGlucose) {
+					this.validateGlucose('postprandialGlucose');
+				}
+				
+				// 如果有异常血糖值，只显示提示，但不阻止提交
+				if (this.glucoseErrors.fastingGlucose || this.glucoseErrors.postprandialGlucose) {
+					uni.showToast({
+						title: '血糖值异常，但仍可提交',
+						icon: 'none',
+						duration: 2000
+					});
+				}
+				
+				// 显示加载提示
+				uni.showLoading({
+					title: this.existingRecord ? '更新中...' : '提交中...'
+				});
+				
+				// 获取用户ID
+				const loginState = getWechatLoginState();
+				if (!loginState.isLoggedIn) {
+					uni.hideLoading();
+					uni.showToast({
+						title: '您尚未登录',
+						icon: 'none'
+					});
+					setTimeout(() => {
+						checkLoginAndRedirect();
+					}, 1500);
+					return;
+				}
+				
+				// 处理提交数据，保留已有数据不被空值覆盖
+				const submitData = {
+					userId: loginState.userInfo._id || loginState.openid,
+					date: this.formData.date,
+					bloodPressure: this.formData.bloodPressure || (this.existingRecord ? this.existingRecord.bloodPressure || '' : '')
+				};
+				
+				// 只有当值不为空时才更新，否则保留已有的值
+				if (this.formData.fastingGlucose) {
+					submitData.fastingGlucose = this.formData.fastingGlucose;
+				} else if (this.existingRecord && this.existingRecord.fastingGlucose) {
+					submitData.fastingGlucose = this.existingRecord.fastingGlucose;
+				}
+				
+				if (this.formData.postprandialGlucose) {
+					submitData.postprandialGlucose = this.formData.postprandialGlucose;
+				} else if (this.existingRecord && this.existingRecord.postprandialGlucose) {
+					submitData.postprandialGlucose = this.existingRecord.postprandialGlucose;
+				}
+				
+				// 根据是否有现有记录决定是更新还是新增
+				const action = this.existingRecord ? 'update' : 'add';
+				if (action === 'update') {
+					submitData.recordId = this.recordId;
+				}
+				
+				// 调用云函数添加或更新血糖记录
+				uniCloud.callFunction({
+					name: 'glucose-service',
+					data: {
+						action: action,
+						params: submitData
+					}
+				}).then(res => {
+					// 请求成功
+					uni.hideLoading();
+					if (res.result && res.result.code === 0) {
+						uni.showToast({
+							title: res.result.message || (action === 'update' ? '更新成功' : '提交成功'),
+							icon: 'success'
 						});
 						
-						// 获取用户ID
-						const loginState = getWechatLoginState();
-						if (!loginState.isLoggedIn) {
-							uni.hideLoading();
-							uni.showToast({
-								title: '您尚未登录',
-								icon: 'none'
-							});
-							setTimeout(() => {
-								checkLoginAndRedirect();
-							}, 1500);
-							return;
+						// 更新本地记录状态
+						if (action === 'add') {
+							this.recordId = res.result.data && res.result.data.id;
+							this.existingRecord = {...submitData, _id: this.recordId};
+						} else {
+							this.existingRecord = {...this.existingRecord, ...submitData};
 						}
 						
-						// 调用云函数添加血糖记录
-						uniCloud.callFunction({
-							name: 'glucose-service',
-							data: {
-								action: 'add',
-								params: {
-									userId: loginState.userInfo._id || loginState.openid,
-									date: this.formData.date,
-									fastingGlucose: this.formData.fastingGlucose,
-									postprandialGlucose: this.formData.postprandialGlucose
-								}
-							}
-						}).then(res => {
-							// 请求成功
-							uni.hideLoading();
-							if (res.result && res.result.code === 0) {
-								uni.showToast({
-									title: res.result.message || '提交成功',
-									icon: 'success'
-								});
-								
-								// 重置表单
-								this.formData = {
-									date: this.getCurrentDate(),
-									fastingGlucose: '',
-									postprandialGlucose: ''
-								};
-								this.glucoseErrors = {
-									fastingGlucose: '',
-									postprandialGlucose: ''
-								};
-							} else {
-								uni.showToast({
-									title: (res.result && res.result.message) || '提交失败',
-									icon: 'none'
-								});
-							}
-						}).catch(err => {
-							// 请求失败
-							uni.hideLoading();
-							uni.showToast({
-								title: '网络错误，请稍后重试',
-								icon: 'none'
-							});
-							console.error('提交血糖数据失败', err);
-						});
+						// 不管是否填写完两项，都不自动重置表单
+						// 这样用户可以看到他们已经提交的数据
+						// 让用户随时可以查看或修改已填写的记录
 					} else {
 						uni.showToast({
-							title: '请填写完整信息',
+							title: (res.result && res.result.message) || '提交失败',
 							icon: 'none'
 						});
 					}
 				}).catch(err => {
-					console.log('表单错误：', err);
+					// 请求失败
+					uni.hideLoading();
+					uni.showToast({
+						title: '网络错误，请稍后重试',
+						icon: 'none'
+					});
+					console.error('提交血糖数据失败', err);
 				});
 			}
 		}
@@ -391,6 +507,25 @@
 		color: #FF5151;
 		font-size: 12px;
 		margin-top: 4px;
+	}
+	
+	.tip-text {
+		color: #999999;
+		font-size: 12px;
+		margin-top: 4px;
+	}
+	
+	.record-info {
+		margin-top: 20px;
+		padding: 10px;
+		background-color: #E6F7FF;
+		border-radius: 5px;
+		text-align: center;
+	}
+	
+	.record-info-text {
+		color: #4095E5;
+		font-size: 14px;
 	}
 	
 	/* 输入框聚焦态样式 */

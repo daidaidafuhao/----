@@ -8,15 +8,19 @@
 			<view class="date-filter">
 				<text class="filter-label">日期范围：</text>
 				<view class="date-pickers">
-					<uni-datetime-picker type="date" v-model="startDate" />
+					<view @click="onDatePickerClick">
+						<uni-datetime-picker type="date" v-model="startDate" @change="onDateChange" @maskClick="onMaskClick" />
+					</view>
 					<text class="date-separator">至</text>
-					<uni-datetime-picker type="date" v-model="endDate" />
+					<view @click="onDatePickerClick">
+						<uni-datetime-picker type="date" v-model="endDate" @change="onDateChange" @maskClick="onMaskClick" />
+					</view>
 				</view>
 			</view>
 			<button class="filter-button" type="primary" @click="searchRecords">筛选</button>
 		</view>
 		
-		<view class="chart-container" v-if="hasRecords">
+		<view class="chart-container" v-if="hasRecords && !isDatePickerOpen">
 			<view class="chart-title">血糖变化趋势</view>
 			<view class="chart-legend">
 				<view class="legend-item">
@@ -37,6 +41,7 @@
 				<text class="list-header-item">日期</text>
 				<text class="list-header-item">空腹血糖</text>
 				<text class="list-header-item">餐后血糖</text>
+				<text class="list-header-item">血压</text>
 			</view>
 			
 			<view class="no-data" v-if="!hasRecords">
@@ -48,6 +53,7 @@
 					<text class="record-date">{{item.date}}</text>
 					<text class="record-value">{{item.fastingGlucose}}</text>
 					<text class="record-value">{{item.postprandialGlucose}}</text>
+					<text class="record-value">{{item.bloodPressure}}</text>
 				</view>
 			</scroll-view>
 		</view>
@@ -75,7 +81,8 @@
 				cWidth: 0,
 				cHeight: 0,
 				pixelRatio: 1,
-				glucoseChart: null
+				glucoseChart: null,
+				isDatePickerOpen: false
 			}
 		},
 		computed: {
@@ -140,22 +147,38 @@
 					}
 				}).then(res => {
 					this.loading = false;
+					uni.hideLoading(); // 确保隐藏加载提示
+					
 					if (res.result && res.result.code === 0) {
 						// 格式化数据
 						const formattedRecords = (res.result.data.list || []).map(item => {
+							// 调试输出查看返回字段
+							console.log('原始记录数据:', item);
+							
+							// 处理不同字段名称可能性 (fasting_glucose 或 fastingGlucose)
+							const fastingGlucose = item.fastingGlucose !== undefined ? item.fastingGlucose : 
+												  (item.fasting_glucose !== undefined ? item.fasting_glucose : undefined);
+													
+							const postprandialGlucose = item.postprandialGlucose !== undefined ? item.postprandialGlucose : 
+													   (item.postprandial_glucose !== undefined ? item.postprandial_glucose : undefined);
+													   
+							const bloodPressure = item.bloodPressure !== undefined ? item.bloodPressure : 
+												 (item.blood_pressure !== undefined ? item.blood_pressure : undefined);
+							
 							return {
 								id: item._id,
 								date: this.formatShortDate(item.date),
-								fastingGlucose: item.fasting_glucose.toFixed(1),
-								postprandialGlucose: item.postprandial_glucose.toFixed(1)
+								fastingGlucose: fastingGlucose !== undefined ? parseFloat(fastingGlucose).toFixed(1) : '-',
+								postprandialGlucose: postprandialGlucose !== undefined ? parseFloat(postprandialGlucose).toFixed(1) : '-',
+								bloodPressure: bloodPressure || '-'
 							};
 						});
 						
 						if (this.page === 1) {
 							// 第一页，直接替换数据
 							this.records = formattedRecords;
-							// 更新图表
-							if (formattedRecords.length > 0) {
+							// 更新图表，仅当不在日期选择状态时
+							if (formattedRecords.length > 0 && !this.isDatePickerOpen) {
 								this.drawGlucoseChart();
 							}
 						} else {
@@ -181,6 +204,8 @@
 					}
 				}).catch(err => {
 					this.loading = false;
+					uni.hideLoading(); // 确保隐藏加载提示
+					
 					uni.showToast({
 						title: '网络错误，请稍后重试',
 						icon: 'none'
@@ -192,6 +217,18 @@
 			searchRecords() {
 				// 重置页码
 				this.page = 1;
+				
+				// 显示加载提示
+				if (!this.loading) {
+					uni.showLoading({
+						title: '加载中...'
+					});
+				}
+				
+				// 关闭日期选择器状态
+				this.isDatePickerOpen = false;
+				
+				// 加载数据
 				this.loadRecordsFromCloud();
 			},
 			// 加载更多
@@ -215,13 +252,17 @@
 					
 					// 准备图表数据
 					const categories = displayRecords.map(item => item.date);
-					const fastingData = displayRecords.map(item => parseFloat(item.fastingGlucose));
-					const postprandialData = displayRecords.map(item => parseFloat(item.postprandialGlucose));
+					const fastingData = displayRecords.map(item => 
+						item.fastingGlucose && item.fastingGlucose !== '-' ? parseFloat(item.fastingGlucose) : null
+					);
+					const postprandialData = displayRecords.map(item => 
+						item.postprandialGlucose && item.postprandialGlucose !== '-' ? parseFloat(item.postprandialGlucose) : null
+					);
 					
 					console.log('图表数据:', { categories, fastingData, postprandialData });
 					
 					// 计算Y轴最小值和最大值，留出足够空间
-					const allValues = [...fastingData, ...postprandialData].filter(val => !isNaN(val));
+					const allValues = [...fastingData, ...postprandialData].filter(val => val !== null && !isNaN(val));
 					if (allValues.length === 0) {
 						console.log('没有有效的数据点');
 						return;
@@ -254,7 +295,7 @@
 							pointShape: 'circle',
 							pointStyle: 'fill',    // 实心点
 							pointSize: 8,          // 增大点大小
-							format: (val) => val.toFixed(1)
+							format: (val) => val !== null && !isNaN(val) ? val.toFixed(1) : '-'
 						}, {
 							name: '餐后血糖',
 							data: postprandialData,
@@ -262,7 +303,7 @@
 							pointShape: 'circle',
 							pointStyle: 'fill',    // 实心点
 							pointSize: 8,          // 增大点大小
-							format: (val) => val.toFixed(1)
+							format: (val) => val !== null && !isNaN(val) ? val.toFixed(1) : '-'
 						}],
 						width: this.cWidth,
 						height: this.cHeight,
@@ -296,7 +337,7 @@
 							gridColor: '#CCCCCC', // 网格线颜色
 							min: yAxisMin,        // 最小值
 							max: yAxisMax,        // 最大值
-							format: (val) => val.toFixed(1), // 格式化
+							format: (val) => val !== null && !isNaN(val) ? val.toFixed(1) : '-', // 格式化
 							axisLine: true,       // 显示轴线
 							fontColor: '#666666',
 							fontSize: 10,
@@ -367,6 +408,9 @@
 						this.glucoseChart.touchLegend(e);
 						this.glucoseChart.showToolTip(e, {
 							format: function(item, category) {
+								if (item.data === null || isNaN(item.data)) {
+									return category + ' ' + item.name + ': 无数据';
+								}
 								return category + ' ' + item.name + ': ' + item.data + ' mmol/L';
 							},
 							fontSize: 13,
@@ -382,6 +426,9 @@
 					if (this.glucoseChart) {
 						this.glucoseChart.showToolTip(e, {
 							format: function(item, category) {
+								if (item.data === null || isNaN(item.data)) {
+									return category + ' ' + item.name + ': 无数据';
+								}
 								return category + ' ' + item.name + ': ' + item.data + ' mmol/L';
 							},
 							fontSize: 13,
@@ -400,6 +447,35 @@
 				} catch (error) {
 					console.error('处理触摸结束事件失败', error);
 				}
+			},
+			onDateChange(value) {
+				console.log('日期变更:', value);
+				// 日期发生变化，表示选择器完成选择
+				this.isDatePickerOpen = false;
+				
+				// 延迟重绘图表
+				setTimeout(() => {
+					if (this.hasRecords) {
+						this.drawGlucoseChart();
+					}
+				}, 300);
+			},
+			onMaskClick() {
+				console.log('遮罩点击');
+				// 点击遮罩通常表示关闭选择器
+				this.isDatePickerOpen = false;
+				
+				// 延迟重绘图表
+				setTimeout(() => {
+					if (this.hasRecords) {
+						this.drawGlucoseChart();
+					}
+				}, 300);
+			},
+			// 点击日期选择器时触发
+			onDatePickerClick() {
+				console.log('点击日期选择器');
+				this.isDatePickerOpen = true;
 			}
 		},
 		onLoad() {
@@ -419,6 +495,10 @@
 			if (!checkLoginAndRedirect()) {
 				return; // 用户未登录，已重定向到登录页面
 			}
+			
+			// 每次切换到该页面时都重新加载数据
+			this.page = 1; // 重置页码
+			this.loadRecordsFromCloud();
 		},
 		onReady() {
 			// 页面渲染完成后如果有数据则绘制图表

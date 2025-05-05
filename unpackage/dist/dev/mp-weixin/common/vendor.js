@@ -7296,9 +7296,9 @@ function initOnError() {
   };
 }
 function initRuntimeSocketService() {
-  const hosts = "172.18.0.1,192.168.0.104,127.0.0.1,192.168.32.1";
+  const hosts = "172.18.0.1,192.168.0.104,127.0.0.1,172.21.240.1";
   const port = "8090";
-  const id = "mp-weixin_u29lyE";
+  const id = "mp-weixin_MgUDE3";
   const lazy = typeof swan !== "undefined";
   let restoreError = lazy ? () => {
   } : initOnError();
@@ -10341,7 +10341,7 @@ class v {
 function I(e2) {
   return e2 && "string" == typeof e2 ? JSON.parse(e2) : e2;
 }
-const S = true, b = "mp-weixin", T = I(define_process_env_UNI_SECURE_NETWORK_CONFIG_default), A = b, P = I('{"address":["127.0.0.1","172.18.0.1","192.168.0.104","192.168.32.1"],"servePort":7000,"debugPort":9000,"initialLaunchType":"remote","skipFiles":["<node_internals>/**","C:/Users/Administrator/HBuilderX.4.57.2025032507/HBuilderX/plugins/unicloud/**/*.js"]}'), C = I('[{"provider":"aliyun","spaceName":"trial-zetznrrk3ur0ldbec25","spaceId":"mp-aa7836c7-9ba2-41fd-8ff5-d2dd2ca73f0c","clientSecret":"Mt9RlD3OYFQ2qn4DxSxVkA==","endpoint":"https://api.next.bspapp.com"}]') || [];
+const S = true, b = "mp-weixin", T = I(define_process_env_UNI_SECURE_NETWORK_CONFIG_default), A = b, P = I('{"address":["127.0.0.1","172.18.0.1","192.168.0.104","172.21.240.1"],"servePort":7000,"debugPort":9000,"initialLaunchType":"remote","skipFiles":["<node_internals>/**","C:/Users/Administrator/HBuilderX.4.57.2025032507/HBuilderX/plugins/unicloud/**/*.js"]}'), C = I('[{"provider":"aliyun","spaceName":"trial-zetznrrk3ur0ldbec25","spaceId":"mp-aa7836c7-9ba2-41fd-8ff5-d2dd2ca73f0c","clientSecret":"Mt9RlD3OYFQ2qn4DxSxVkA==","endpoint":"https://api.next.bspapp.com"}]') || [];
 let O = "";
 try {
   O = "__UNI__0AF1FBD";
@@ -12892,7 +12892,7 @@ let tr = new class {
 })();
 var nr = tr;
 var define_process_env_UNI_STATISTICS_CONFIG_default = { version: "2", enable: true };
-var define_process_env_UNI_STAT_TITLE_JSON_default = { "pages/login/index": "用户登录", "pages/data-entry/index": "血糖填报", "pages/user-info/index": "个人信息", "pages/history/index": "历史记录", "pages/admin/index": "管理", "pages/admin/add-admin": "添加管理员", "pages/API/login/login": "用户登录" };
+var define_process_env_UNI_STAT_TITLE_JSON_default = { "pages/login/index": "用户登录", "pages/data-entry/index": "血糖填报", "pages/user-info/index": "个人信息", "pages/history/index": "历史记录", "pages/admin/index": "管理", "pages/admin/add-admin": "管理员授权", "pages/API/login/login": "用户登录" };
 var define_process_env_UNI_STAT_UNI_CLOUD_default = {};
 const sys = index$1.getSystemInfoSync();
 const STAT_VERSION = "4.57";

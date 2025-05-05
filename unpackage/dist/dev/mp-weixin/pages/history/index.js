@@ -17,7 +17,8 @@ const _sfc_main = {
       cWidth: 0,
       cHeight: 0,
       pixelRatio: 1,
-      glucoseChart: null
+      glucoseChart: null,
+      isDatePickerOpen: false
     };
   },
   computed: {
@@ -78,18 +79,24 @@ const _sfc_main = {
         }
       }).then((res) => {
         this.loading = false;
+        common_vendor.index.hideLoading();
         if (res.result && res.result.code === 0) {
           const formattedRecords = (res.result.data.list || []).map((item) => {
+            common_vendor.index.__f__("log", "at pages/history/index.vue:156", "原始记录数据:", item);
+            const fastingGlucose = item.fastingGlucose !== void 0 ? item.fastingGlucose : item.fasting_glucose !== void 0 ? item.fasting_glucose : void 0;
+            const postprandialGlucose = item.postprandialGlucose !== void 0 ? item.postprandialGlucose : item.postprandial_glucose !== void 0 ? item.postprandial_glucose : void 0;
+            const bloodPressure = item.bloodPressure !== void 0 ? item.bloodPressure : item.blood_pressure !== void 0 ? item.blood_pressure : void 0;
             return {
               id: item._id,
               date: this.formatShortDate(item.date),
-              fastingGlucose: item.fasting_glucose.toFixed(1),
-              postprandialGlucose: item.postprandial_glucose.toFixed(1)
+              fastingGlucose: fastingGlucose !== void 0 ? parseFloat(fastingGlucose).toFixed(1) : "-",
+              postprandialGlucose: postprandialGlucose !== void 0 ? parseFloat(postprandialGlucose).toFixed(1) : "-",
+              bloodPressure: bloodPressure || "-"
             };
           });
           if (this.page === 1) {
             this.records = formattedRecords;
-            if (formattedRecords.length > 0) {
+            if (formattedRecords.length > 0 && !this.isDatePickerOpen) {
               this.drawGlucoseChart();
             }
           } else {
@@ -111,16 +118,23 @@ const _sfc_main = {
         }
       }).catch((err) => {
         this.loading = false;
+        common_vendor.index.hideLoading();
         common_vendor.index.showToast({
           title: "网络错误，请稍后重试",
           icon: "none"
         });
-        common_vendor.index.__f__("error", "at pages/history/index.vue:188", "获取血糖记录失败", err);
+        common_vendor.index.__f__("error", "at pages/history/index.vue:213", "获取血糖记录失败", err);
       });
     },
     // 搜索记录
     searchRecords() {
       this.page = 1;
+      if (!this.loading) {
+        common_vendor.index.showLoading({
+          title: "加载中..."
+        });
+      }
+      this.isDatePickerOpen = false;
       this.loadRecordsFromCloud();
     },
     // 加载更多
@@ -134,17 +148,21 @@ const _sfc_main = {
     drawGlucoseChart() {
       try {
         if (!this.records || this.records.length === 0) {
-          common_vendor.index.__f__("log", "at pages/history/index.vue:209", "没有足够的数据来绘制图表");
+          common_vendor.index.__f__("log", "at pages/history/index.vue:246", "没有足够的数据来绘制图表");
           return;
         }
         const displayRecords = [...this.records].reverse().slice(0, 7);
         const categories = displayRecords.map((item) => item.date);
-        const fastingData = displayRecords.map((item) => parseFloat(item.fastingGlucose));
-        const postprandialData = displayRecords.map((item) => parseFloat(item.postprandialGlucose));
-        common_vendor.index.__f__("log", "at pages/history/index.vue:221", "图表数据:", { categories, fastingData, postprandialData });
-        const allValues = [...fastingData, ...postprandialData].filter((val) => !isNaN(val));
+        const fastingData = displayRecords.map(
+          (item) => item.fastingGlucose && item.fastingGlucose !== "-" ? parseFloat(item.fastingGlucose) : null
+        );
+        const postprandialData = displayRecords.map(
+          (item) => item.postprandialGlucose && item.postprandialGlucose !== "-" ? parseFloat(item.postprandialGlucose) : null
+        );
+        common_vendor.index.__f__("log", "at pages/history/index.vue:262", "图表数据:", { categories, fastingData, postprandialData });
+        const allValues = [...fastingData, ...postprandialData].filter((val) => val !== null && !isNaN(val));
         if (allValues.length === 0) {
-          common_vendor.index.__f__("log", "at pages/history/index.vue:226", "没有有效的数据点");
+          common_vendor.index.__f__("log", "at pages/history/index.vue:267", "没有有效的数据点");
           return;
         }
         const minValue = Math.min(...allValues);
@@ -169,7 +187,7 @@ const _sfc_main = {
             // 实心点
             pointSize: 8,
             // 增大点大小
-            format: (val) => val.toFixed(1)
+            format: (val) => val !== null && !isNaN(val) ? val.toFixed(1) : "-"
           }, {
             name: "餐后血糖",
             data: postprandialData,
@@ -179,7 +197,7 @@ const _sfc_main = {
             // 实心点
             pointSize: 8,
             // 增大点大小
-            format: (val) => val.toFixed(1)
+            format: (val) => val !== null && !isNaN(val) ? val.toFixed(1) : "-"
           }],
           width: this.cWidth,
           height: this.cHeight,
@@ -235,7 +253,7 @@ const _sfc_main = {
             // 最小值
             max: yAxisMax,
             // 最大值
-            format: (val) => val.toFixed(1),
+            format: (val) => val !== null && !isNaN(val) ? val.toFixed(1) : "-",
             // 格式化
             axisLine: true,
             // 显示轴线
@@ -277,21 +295,21 @@ const _sfc_main = {
         ctx.fillRect(0, 0, this.cWidth, this.cHeight);
         this.glucoseChart = new pages_history_zujian_uCharts.uCharts(options);
         ctx.draw(true, () => {
-          common_vendor.index.__f__("log", "at pages/history/index.vue:338", "Canvas绘制完成");
+          common_vendor.index.__f__("log", "at pages/history/index.vue:379", "Canvas绘制完成");
           setTimeout(() => {
             if (this.glucoseChart) {
               try {
-                common_vendor.index.__f__("log", "at pages/history/index.vue:343", "执行更新...");
+                common_vendor.index.__f__("log", "at pages/history/index.vue:384", "执行更新...");
                 this.glucoseChart = new pages_history_zujian_uCharts.uCharts(options);
                 ctx.draw(true);
               } catch (err) {
-                common_vendor.index.__f__("error", "at pages/history/index.vue:349", "更新图表失败", err);
+                common_vendor.index.__f__("error", "at pages/history/index.vue:390", "更新图表失败", err);
               }
             }
           }, 200);
         });
       } catch (error) {
-        common_vendor.index.__f__("error", "at pages/history/index.vue:356", "绘制图表过程中出错", error);
+        common_vendor.index.__f__("error", "at pages/history/index.vue:397", "绘制图表过程中出错", error);
         common_vendor.index.showToast({
           title: "图表绘制失败",
           icon: "none"
@@ -305,6 +323,9 @@ const _sfc_main = {
           this.glucoseChart.touchLegend(e);
           this.glucoseChart.showToolTip(e, {
             format: function(item, category) {
+              if (item.data === null || isNaN(item.data)) {
+                return category + " " + item.name + ": 无数据";
+              }
               return category + " " + item.name + ": " + item.data + " mmol/L";
             },
             fontSize: 13,
@@ -312,7 +333,7 @@ const _sfc_main = {
           });
         }
       } catch (error) {
-        common_vendor.index.__f__("error", "at pages/history/index.vue:377", "处理触摸事件失败", error);
+        common_vendor.index.__f__("error", "at pages/history/index.vue:421", "处理触摸事件失败", error);
       }
     },
     touchmove(e) {
@@ -320,6 +341,9 @@ const _sfc_main = {
         if (this.glucoseChart) {
           this.glucoseChart.showToolTip(e, {
             format: function(item, category) {
+              if (item.data === null || isNaN(item.data)) {
+                return category + " " + item.name + ": 无数据";
+              }
               return category + " " + item.name + ": " + item.data + " mmol/L";
             },
             fontSize: 13,
@@ -327,7 +351,7 @@ const _sfc_main = {
           });
         }
       } catch (error) {
-        common_vendor.index.__f__("error", "at pages/history/index.vue:392", "处理移动事件失败", error);
+        common_vendor.index.__f__("error", "at pages/history/index.vue:439", "处理移动事件失败", error);
       }
     },
     touchend(e) {
@@ -336,27 +360,52 @@ const _sfc_main = {
           this.glucoseChart.touchLegend(e);
         }
       } catch (error) {
-        common_vendor.index.__f__("error", "at pages/history/index.vue:401", "处理触摸结束事件失败", error);
+        common_vendor.index.__f__("error", "at pages/history/index.vue:448", "处理触摸结束事件失败", error);
       }
+    },
+    onDateChange(value) {
+      common_vendor.index.__f__("log", "at pages/history/index.vue:452", "日期变更:", value);
+      this.isDatePickerOpen = false;
+      setTimeout(() => {
+        if (this.hasRecords) {
+          this.drawGlucoseChart();
+        }
+      }, 300);
+    },
+    onMaskClick() {
+      common_vendor.index.__f__("log", "at pages/history/index.vue:464", "遮罩点击");
+      this.isDatePickerOpen = false;
+      setTimeout(() => {
+        if (this.hasRecords) {
+          this.drawGlucoseChart();
+        }
+      }, 300);
+    },
+    // 点击日期选择器时触发
+    onDatePickerClick() {
+      common_vendor.index.__f__("log", "at pages/history/index.vue:477", "点击日期选择器");
+      this.isDatePickerOpen = true;
     }
   },
   onLoad() {
-    common_vendor.index.__f__("log", "at pages/history/index.vue:406", "onLoad");
+    common_vendor.index.__f__("log", "at pages/history/index.vue:482", "onLoad");
     if (!common_api_login.checkLoginAndRedirect()) {
       return;
     }
     this.loadRecordsFromCloud();
   },
   onShow() {
-    common_vendor.index.__f__("log", "at pages/history/index.vue:416", "onShow");
+    common_vendor.index.__f__("log", "at pages/history/index.vue:492", "onShow");
     if (!common_api_login.checkLoginAndRedirect()) {
       return;
     }
+    this.page = 1;
+    this.loadRecordsFromCloud();
   },
   onReady() {
     setTimeout(() => {
       if (this.hasRecords) {
-        common_vendor.index.__f__("log", "at pages/history/index.vue:428", "onReady开始绘制图表");
+        common_vendor.index.__f__("log", "at pages/history/index.vue:508", "onReady开始绘制图表");
         this.drawGlucoseChart();
       }
     }, 300);
@@ -384,31 +433,38 @@ if (!Math) {
 }
 function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   return common_vendor.e({
-    a: common_vendor.o(($event) => $data.startDate = $event),
-    b: common_vendor.p({
+    a: common_vendor.o($options.onDateChange),
+    b: common_vendor.o($options.onMaskClick),
+    c: common_vendor.o(($event) => $data.startDate = $event),
+    d: common_vendor.p({
       type: "date",
       modelValue: $data.startDate
     }),
-    c: common_vendor.o(($event) => $data.endDate = $event),
-    d: common_vendor.p({
+    e: common_vendor.o((...args) => $options.onDatePickerClick && $options.onDatePickerClick(...args)),
+    f: common_vendor.o($options.onDateChange),
+    g: common_vendor.o($options.onMaskClick),
+    h: common_vendor.o(($event) => $data.endDate = $event),
+    i: common_vendor.p({
       type: "date",
       modelValue: $data.endDate
     }),
-    e: common_vendor.o((...args) => $options.searchRecords && $options.searchRecords(...args)),
-    f: $options.hasRecords
-  }, $options.hasRecords ? {
-    g: common_vendor.o((...args) => $options.touchstart && $options.touchstart(...args)),
-    h: common_vendor.o((...args) => $options.touchmove && $options.touchmove(...args)),
-    i: common_vendor.o((...args) => $options.touchend && $options.touchend(...args))
+    j: common_vendor.o((...args) => $options.onDatePickerClick && $options.onDatePickerClick(...args)),
+    k: common_vendor.o((...args) => $options.searchRecords && $options.searchRecords(...args)),
+    l: $options.hasRecords && !$data.isDatePickerOpen
+  }, $options.hasRecords && !$data.isDatePickerOpen ? {
+    m: common_vendor.o((...args) => $options.touchstart && $options.touchstart(...args)),
+    n: common_vendor.o((...args) => $options.touchmove && $options.touchmove(...args)),
+    o: common_vendor.o((...args) => $options.touchend && $options.touchend(...args))
   } : {}, {
-    j: !$options.hasRecords
+    p: !$options.hasRecords
   }, !$options.hasRecords ? {} : {
-    k: common_vendor.f($data.records, (item, index, i0) => {
+    q: common_vendor.f($data.records, (item, index, i0) => {
       return {
         a: common_vendor.t(item.date),
         b: common_vendor.t(item.fastingGlucose),
         c: common_vendor.t(item.postprandialGlucose),
-        d: index
+        d: common_vendor.t(item.bloodPressure),
+        e: index
       };
     })
   });

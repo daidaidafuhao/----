@@ -88,6 +88,22 @@
 		font-size: 12px;
 		margin-top: 4px;
 }
+.tip-text {
+		color: #999999;
+		font-size: 12px;
+		margin-top: 4px;
+}
+.record-info {
+		margin-top: 20px;
+		padding: 10px;
+		background-color: #E6F7FF;
+		border-radius: 5px;
+		text-align: center;
+}
+.record-info-text {
+		color: #4095E5;
+		font-size: 14px;
+}
 	
 	/* 输入框聚焦态样式 */
  .uni-easyinput__content-input:focus {
