@@ -583,6 +583,184 @@ exports.main = async (event, context) => {
 			}
 		}
 		
+		case 'exportMissingRecords': {
+			try {
+				const { dateRange, format } = params;
+				if (!dateRange || !dateRange.startDate || !dateRange.endDate) {
+					return {
+						code: 400,
+						message: '导出未填报名单需要指定日期范围'
+					};
+				}
+
+				const startDate = new Date(dateRange.startDate);
+				startDate.setHours(0, 0, 0, 0);
+				const endDate = new Date(dateRange.endDate);
+				endDate.setHours(23, 59, 59, 999);
+
+				// 获取所有用户
+				const usersResult = await db.collection('users').get();
+				const users = usersResult.data;
+
+				// 获取日期范围内的所有记录
+				const recordsResult = await db.collection('glucose_records')
+					.where({
+						date: db.command.gte(startDate).and(db.command.lte(endDate))
+					})
+					.get();
+
+				const records = recordsResult.data;
+
+				// 创建日期到记录的映射
+				const recordsByDate = {};
+				records.forEach(record => {
+					const dateStr = new Date(record.date).toISOString().split('T')[0];
+					if (!recordsByDate[dateStr]) {
+						recordsByDate[dateStr] = {};
+					}
+					recordsByDate[dateStr][record.user_id] = record;
+					if (record.openid) {
+						recordsByDate[dateStr][record.openid] = record;
+					}
+				});
+
+				// 生成所有日期
+				const allDates = [];
+				const currentDate = new Date(startDate);
+				while (currentDate <= endDate) {
+					allDates.push(currentDate.toISOString().split('T')[0]);
+					currentDate.setDate(currentDate.getDate() + 1);
+				}
+
+				// 生成文件名
+				const fileName = `missing_records_${dateRange.startDate}_${dateRange.endDate}`;
+
+				if (format === 'xlsx') {
+					// 创建工作簿
+					const workbook = XLSX.utils.book_new();
+					
+					// 准备数据
+					const rows = [
+						['未填报名单 - ' + dateRange.startDate + ' 至 ' + dateRange.endDate],  // 标题行
+					];
+
+					// 为每个日期添加数据
+					allDates.forEach(date => {
+						// 添加日期行
+						rows.push([date]);
+						
+						// 找出当天未填写的用户
+						const missingUsers = users.filter(user => {
+							const record = recordsByDate[date] && (recordsByDate[date][user._id] || recordsByDate[date][user.openid]);
+							return !record || !record.fasting_glucose || !record.postprandial_glucose;
+						});
+
+						// 添加未填写用户
+						if (missingUsers.length > 0) {
+							missingUsers.forEach(user => {
+								const record = recordsByDate[date] && (recordsByDate[date][user._id] || recordsByDate[date][user.openid]);
+								const missingItems = [];
+								if (!record || !record.fasting_glucose) missingItems.push('餐前');
+								if (!record || !record.postprandial_glucose) missingItems.push('餐后');
+								
+								rows.push([
+									'  ' + (user.name || '未设置姓名'),  // 添加缩进
+									missingItems.join('、')
+								]);
+							});
+						} else {
+							rows.push(['  无未填写用户']);
+						}
+						
+						// 添加空行
+						rows.push([]);
+					});
+
+					// 创建工作表
+					const worksheet = XLSX.utils.aoa_to_sheet(rows);
+
+					// 设置列宽
+					worksheet['!cols'] = [
+						{ wch: 30 },  // 姓名
+						{ wch: 15 }   // 未填写项目
+					];
+
+					// 合并标题行
+					worksheet['!merges'] = [
+						{ s: { r: 0, c: 0 }, e: { r: 0, c: 1 } }
+					];
+
+					// 添加工作表到工作簿
+					XLSX.utils.book_append_sheet(workbook, worksheet, "未填报名单");
+
+					// 将工作簿转换为二进制数据
+					const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'buffer' });
+					
+					// 将二进制数据转换为Base64字符串
+					const base64Data = Buffer.from(excelBuffer).toString('base64');
+
+					return {
+						code: 0,
+						data: {
+							fileContent: base64Data,
+							fileName: `${fileName}.xlsx`,
+							fileType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+						},
+						message: '导出未填报名单成功'
+					};
+				} else {
+					// 生成CSV格式
+					let csv = `未填报名单 - ${dateRange.startDate} 至 ${dateRange.endDate}\r\n\r\n`;
+
+					// 为每个日期添加数据
+					allDates.forEach(date => {
+						csv += `${date}\r\n`;
+						
+						// 找出当天未填写的用户
+						const missingUsers = users.filter(user => {
+							const record = recordsByDate[date] && (recordsByDate[date][user._id] || recordsByDate[date][user.openid]);
+							return !record || !record.fasting_glucose || !record.postprandial_glucose;
+						});
+
+						// 添加未填写用户
+						if (missingUsers.length > 0) {
+							missingUsers.forEach(user => {
+								const record = recordsByDate[date] && (recordsByDate[date][user._id] || recordsByDate[date][user.openid]);
+								const missingItems = [];
+								if (!record || !record.fasting_glucose) missingItems.push('餐前');
+								if (!record || !record.postprandial_glucose) missingItems.push('餐后');
+								
+								csv += `  ${user.name || '未设置姓名'},${missingItems.join('、')}\r\n`;
+							});
+						} else {
+							csv += '  无未填写用户\r\n';
+						}
+						
+						csv += '\r\n';
+					});
+
+					// 将CSV内容转换为Base64字符串
+					const base64Data = Buffer.from(csv).toString('base64');
+
+					return {
+						code: 0,
+						data: {
+							fileContent: base64Data,
+							fileName: `${fileName}.csv`,
+							fileType: 'text/csv'
+						},
+						message: '导出未填报名单成功'
+					};
+				}
+			} catch (error) {
+				console.error('导出未填报名单失败', error);
+				return {
+					code: 500,
+					message: `导出未填报名单失败: ${error.message || '未知错误'}`
+				};
+			}
+		}
+		
 		default:
 			return {
 				code: -1,

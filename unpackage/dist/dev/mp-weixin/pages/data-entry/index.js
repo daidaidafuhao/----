@@ -349,7 +349,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   }, $data.existingRecord ? {
     K: common_vendor.t($options.getRecordInfoText())
   } : {}, {
-    L: common_vendor.sr("form", "26578643-0"),
+    L: common_vendor.sr("form", "2bd44c72-0"),
     M: common_vendor.p({
       modelValue: $data.formData,
       rules: $data.rules,

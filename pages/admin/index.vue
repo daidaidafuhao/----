@@ -5,12 +5,7 @@
 		</view>
 		
 		<view class="admin-container">
-			<view class="admin-panel">
-				<view class="panel-title">管理员管理</view>
-				<view class="panel-content">
-					<button class="admin-button" @click="showQRCode">添加新管理员</button>
-				</view>
-			</view>
+			
 			
 			<view class="admin-panel">
 				<view class="panel-title">导出数据</view>
@@ -57,7 +52,32 @@
 						</view>
 					</view>
 					
-					<button class="export-button" type="primary" @click="exportData" :loading="loading">导出数据</button>
+					<button class="export-button" type="primary" @click="exportData" :loading="exportLoading">导出数据</button>
+					
+					<!-- 添加导出未填数据按钮 -->
+					<view class="export-missing-section">
+						<view class="export-option">
+							<text class="option-label">开始日期：</text>
+							<picker mode="date" :value="missingStartDate" @change="onMissingStartDateChange">
+								<view class="picker-value">
+									<text>{{missingStartDate}}</text>
+									<text class="picker-arrow">▼</text>
+								</view>
+							</picker>
+						</view>
+						
+						<view class="export-option">
+							<text class="option-label">结束日期：</text>
+							<picker mode="date" :value="missingEndDate" @change="onMissingEndDateChange">
+								<view class="picker-value">
+									<text>{{missingEndDate}}</text>
+									<text class="picker-arrow">▼</text>
+								</view>
+							</picker>
+						</view>
+						
+						<button class="export-button export-missing-button" type="primary" @click="exportMissingData" :loading="missingExportLoading">导出未填报名单</button>
+					</view>
 				</view>
 			</view>
 			
@@ -115,28 +135,26 @@
 				lastWeekCount: 0,
 				activeUserCount: 0,
 				loading: false,
-				showQRModal: false  // 控制QR码弹窗显示
+				exportLoading: false,        // 导出数据的loading状态
+				missingExportLoading: false, // 导出未填报名单的loading状态
+				showQRModal: false,  // 控制QR码弹窗显示
+				missingStartDate: '', // 未填报名单开始日期
+				missingEndDate: ''    // 未填报名单结束日期
 			}
 		},
 		created() {
 			// 初始化日期
 			this.customEndDate = this.getCurrentDate();
 			this.customStartDate = this.getLastMonthDate();
+			this.missingEndDate = this.getCurrentDate();
+			this.missingStartDate = this.getLastWeekDate(); // 默认显示最近一周
 		},
 		onLoad() {
 			// 获取实际统计数据
 			this.loadStatistics();
 		},
 		methods: {
-			// 显示QR码弹窗
-			showQRCode() {
-				this.showQRModal = true;
-			},
 			
-			// 隐藏QR码弹窗
-			hideQRCode() {
-				this.showQRModal = false;
-			},
 			
 			loadStatistics() {
 				const openid = uni.getStorageSync('openid');
@@ -232,6 +250,20 @@
 			onEndDateChange(e) {
 				this.customEndDate = e.detail.value;
 			},
+			onMissingStartDateChange(e) {
+				this.missingStartDate = e.detail.value;
+			},
+			onMissingEndDateChange(e) {
+				this.missingEndDate = e.detail.value;
+			},
+			getLastWeekDate() {
+				const date = new Date();
+				date.setDate(date.getDate() - 7);
+				const year = date.getFullYear();
+				const month = (date.getMonth() + 1).toString().padStart(2, '0');
+				const day = date.getDate().toString().padStart(2, '0');
+				return `${year}-${month}-${day}`;
+			},
 			exportData() {
 				const openid = uni.getStorageSync('openid');
 				if (!openid) {
@@ -288,7 +320,7 @@
 						break;
 				}
 				
-				this.loading = true;
+				this.exportLoading = true;
 				uni.showLoading({
 					title: '导出中...'
 				});
@@ -307,7 +339,7 @@
 				// 调用云函数导出数据
 				exportAllData(openid, dateRange, formatType)
 					.then(res => {
-						this.loading = false;
+						this.exportLoading = false;
 						uni.hideLoading();
 						
 						if (res.code === 0) {
@@ -350,7 +382,7 @@
 						}
 					})
 					.catch(err => {
-						this.loading = false;
+						this.exportLoading = false;
 						uni.hideLoading();
 						uni.showModal({
 							title: '导出数据失败',
@@ -713,6 +745,93 @@
 					// 如果网页下载方式失败，尝试使用移动端方法
 					this.saveFileOnMobileFromBase64(fileName, base64Data, mimeType);
 				}
+			},
+			
+			// 导出未填报名单
+			exportMissingData() {
+				const openid = uni.getStorageSync('openid');
+				if (!openid) {
+					uni.showToast({
+						title: '登录状态已失效',
+						icon: 'none'
+					});
+					return;
+				}
+				
+				this.missingExportLoading = true;
+				uni.showLoading({
+					title: '导出中...'
+				});
+				
+				// 获取文件格式
+				const format = this.formats[this.formatIndex].toLowerCase().split(' ')[0];
+				const formatType = format === 'excel' ? 'xlsx' : 'csv';
+				
+				// 调用云函数导出未填报名单
+				uniCloud.callFunction({
+					name: 'admin-service',
+					data: {
+						action: 'exportMissingRecords',
+						params: {
+							dateRange: {
+								startDate: this.missingStartDate,
+								endDate: this.missingEndDate
+							},
+							format: formatType
+						}
+					}
+				}).then(res => {
+					this.missingExportLoading = false;
+					uni.hideLoading();
+					
+					if (res.result.code === 0) {
+						// 接收云函数返回的文件内容（Base64格式）
+						const fileData = res.result.data;
+						
+						try {
+							// 检查文件数据是否存在
+							if (!fileData.fileContent) {
+								throw new Error('文件内容为空');
+							}
+							
+							// 直接保存云函数生成好的文件
+							this.saveFileFromBase64(fileData.fileName, fileData.fileContent, fileData.fileType);
+							
+							uni.showToast({
+								title: '导出成功',
+								icon: 'success'
+							});
+						} catch (error) {
+							console.error('保存导出文件失败', error);
+							uni.showModal({
+								title: '导出失败',
+								content: `处理数据时出错: ${error.message || '未知错误'}`,
+								showCancel: false
+							});
+						}
+					} else if (res.result.code === 403) {
+						// 无权访问
+						uni.showToast({
+							title: '无权执行导出操作',
+							icon: 'none'
+						});
+					} else {
+						uni.showModal({
+							title: '导出失败',
+							content: res.result.message || '未知错误',
+							showCancel: false
+						});
+					}
+				}).catch(err => {
+					this.missingExportLoading = false;
+					uni.hideLoading();
+					uni.showModal({
+						title: '导出数据失败',
+						content: err.message || '未知错误',
+						showCancel: false
+					});
+					console.error('导出数据出错', err);
+				});
 			}
 		}
 	}
@@ -879,5 +998,15 @@
 		margin-top: 10px;
 		background-color: #4095E5;
 		color: #fff;
+	}
+	
+	.export-missing-section {
+		margin-top: 20px;
+		padding-top: 20px;
+		border-top: 1px solid #eee;
+	}
+	
+	.export-missing-button {
+		background-color: #67C23A;
 	}
 </style> 

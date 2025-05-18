@@ -73,16 +73,30 @@
 									
 									// 获取是否为管理员（从云函数返回）
 									const isAdmin = res.result.data.isAdmin;
+									console.log('是否为管理员:', isAdmin);
 									
 									// 根据用户类型跳转到不同页面
 									setTimeout(() => {
 										if (isAdmin) {
-											// 管理员用户跳转到管理页面
-											uni.reLaunch({
-												url: '/pages/admin/index'
+											// 管理员用户显示选择页面
+											uni.showActionSheet({
+												itemList: ['管理页面', '填报页面'],
+												success: (res) => {
+													if (res.tapIndex === 0) {
+														// 选择管理页面
+														uni.reLaunch({
+															url: '/pages/admin/index'
+														});
+													} else {
+														// 选择填报页面
+														uni.switchTab({
+															url: '/pages/data-entry/index'
+														});
+													}
+												}
 											});
 										} else {
-											// 普通用户跳转到填报页面
+											// 普通用户直接跳转到填报页面
 											uni.switchTab({
 												url: '/pages/data-entry/index'
 											});

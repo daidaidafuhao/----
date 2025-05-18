@@ -2,8 +2,8 @@
 
 // 微信小程序配置信息
 const wxConfig = {
-  appid: '	wx5891aec381d1839a', // 填入您的微信小程序appid
-  secret: '1dc7f0c81aa2f934e69e0173a9e031f5' // 填入您的微信小程序secret
+  appid: 'wx5891aec381d1839a', // 填入您的微信小程序appid
+  secret: '2b3c244749f2eb61558ec03a2e793ba7' // 填入您的微信小程序secret
 };
 const db = uniCloud.database();
 const usersCollection = db.collection('users');
@@ -51,7 +51,8 @@ exports.main = async (event, context) => {
         nickName: "",
         avatarUrl: "",
         createTime: new Date().getTime(),
-        updateTime: new Date().getTime()
+        updateTime: new Date().getTime(),
+        isAdmin: false // 默认非管理员
       };
       
       // 添加新用户到数据库
@@ -61,12 +62,17 @@ exports.main = async (event, context) => {
       console.log('用户已存在:', openid);
     }
     
+    // 获取用户信息（包括管理员状态）
+    const userInfo = await usersCollection.where({ openid }).limit(1).get();
+    const isAdmin = userInfo.data && userInfo.data.length > 0 ? userInfo.data[0].isAdmin : false;
+    
     // 返回openid等信息
     return {
       code: 0,
       msg: '登录成功',
       data: {
         openid: data.openid,
+        isAdmin: isAdmin,
         // session_key不应该返回给客户端，这里仅做演示
         // 实际应用中建议存储在云端，并返回自定义登录态标识
         session_key: data.session_key,

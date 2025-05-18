@@ -6,6 +6,8 @@ const common_assets = require("../../common/assets.js");
 const _sfc_main = {
   data() {
     return {
+      isPageVisible: false,
+      // 控制页面显示/隐藏
       isLoggedIn: false,
       userInfo: null,
       openid: "",
@@ -29,18 +31,44 @@ const _sfc_main = {
     };
   },
   onLoad() {
+    this.getPageConfig();
     if (!common_api_login.checkLoginAndRedirect()) {
       return;
     }
     this.initPageData();
   },
   onShow() {
+    this.getPageConfig();
     if (!common_api_login.checkLoginAndRedirect()) {
       return;
     }
     this.initPageData();
   },
   methods: {
+    // 获取页面配置
+    async getPageConfig() {
+      try {
+        const result = await common_vendor.nr.callFunction({
+          name: "page-config",
+          data: {
+            action: "getConfig",
+            params: {
+              pageId: "user-info"
+            }
+          }
+        });
+        if (result.result.code === 0) {
+          common_vendor.index.__f__("log", "at pages/user-info/index.vue:158", "页面配置", result.result.data.isVisible);
+          this.isPageVisible = result.result.data.isVisible;
+        } else {
+          common_vendor.index.__f__("error", "at pages/user-info/index.vue:162", "获取页面配置失败:", result.result.message);
+          this.isPageVisible = false;
+        }
+      } catch (error) {
+        common_vendor.index.__f__("error", "at pages/user-info/index.vue:166", "获取页面配置出错:", error);
+        this.isPageVisible = false;
+      }
+    },
     // 初始化页面数据
     initPageData() {
       const loginState = common_api_wechat.getWechatLoginState();
@@ -69,7 +97,7 @@ const _sfc_main = {
           });
         }).catch((err) => {
           common_vendor.index.hideLoading();
-          common_vendor.index.__f__("error", "at pages/user-info/index.vue:175", "登录失败", err);
+          common_vendor.index.__f__("error", "at pages/user-info/index.vue:214", "登录失败", err);
           common_vendor.index.showToast({
             title: "登录失败，请重试",
             icon: "none"
@@ -77,7 +105,7 @@ const _sfc_main = {
         });
       } catch (error) {
         common_vendor.index.hideLoading();
-        common_vendor.index.__f__("error", "at pages/user-info/index.vue:183", "登录过程出错:", error);
+        common_vendor.index.__f__("error", "at pages/user-info/index.vue:222", "登录过程出错:", error);
         common_vendor.index.showToast({
           title: "登录出错，请重试",
           icon: "none"
@@ -130,7 +158,7 @@ const _sfc_main = {
         },
         fail: (err) => {
           common_vendor.index.hideLoading();
-          common_vendor.index.__f__("error", "at pages/user-info/index.vue:245", "获取用户信息失败", err);
+          common_vendor.index.__f__("error", "at pages/user-info/index.vue:284", "获取用户信息失败", err);
         }
       });
     },
@@ -191,7 +219,7 @@ const _sfc_main = {
             },
             fail: (err) => {
               common_vendor.index.hideLoading();
-              common_vendor.index.__f__("error", "at pages/user-info/index.vue:314", "保存用户信息失败", err);
+              common_vendor.index.__f__("error", "at pages/user-info/index.vue:353", "保存用户信息失败", err);
               common_vendor.index.showToast({
                 title: "保存失败，请重试",
                 icon: "none"
@@ -219,120 +247,122 @@ if (!Math) {
 }
 function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   return common_vendor.e({
-    a: !$data.isLoggedIn
+    a: !$data.isPageVisible
+  }, !$data.isPageVisible ? {} : common_vendor.e({
+    b: !$data.isLoggedIn
   }, !$data.isLoggedIn ? {
-    b: common_assets._imports_0,
-    c: common_vendor.o((...args) => $options.handleWechatLogin && $options.handleWechatLogin(...args))
+    c: common_assets._imports_0,
+    d: common_vendor.o((...args) => $options.handleWechatLogin && $options.handleWechatLogin(...args))
   } : {
-    d: $data.userInfo.avatarUrl || "/static/icons/user-avatar-placeholder.png",
-    e: common_vendor.t($data.userInfo.nickName || "微信用户"),
-    f: common_vendor.o(($event) => $data.formData.name = $event),
-    g: common_vendor.p({
+    e: $data.userInfo.avatarUrl || "/static/icons/user-avatar-placeholder.png",
+    f: common_vendor.t($data.userInfo.nickName || "微信用户"),
+    g: common_vendor.o(($event) => $data.formData.name = $event),
+    h: common_vendor.p({
       type: "text",
       placeholder: "请输入姓名",
       modelValue: $data.formData.name
     }),
-    h: common_vendor.p({
+    i: common_vendor.p({
       label: "姓名",
       required: true
     }),
-    i: common_vendor.o(($event) => $data.formData.contactMethod = $event),
-    j: common_vendor.p({
+    j: common_vendor.o(($event) => $data.formData.contactMethod = $event),
+    k: common_vendor.p({
       type: "text",
       placeholder: "请输入联系方式",
       modelValue: $data.formData.contactMethod
     }),
-    k: common_vendor.p({
+    l: common_vendor.p({
       label: "联系方式"
     }),
-    l: common_vendor.o(($event) => $data.formData.contactPerson = $event),
-    m: common_vendor.p({
+    m: common_vendor.o(($event) => $data.formData.contactPerson = $event),
+    n: common_vendor.p({
       type: "text",
       placeholder: "请输入联系人姓名",
       modelValue: $data.formData.contactPerson
     }),
-    n: common_vendor.p({
+    o: common_vendor.p({
       label: "联系人"
     }),
-    o: common_vendor.o(($event) => $data.formData.notes = $event),
-    p: common_vendor.p({
+    p: common_vendor.o(($event) => $data.formData.notes = $event),
+    q: common_vendor.p({
       type: "textarea",
       placeholder: "请输入备注信息",
       modelValue: $data.formData.notes
     }),
-    q: common_vendor.p({
+    r: common_vendor.p({
       label: "备注"
     }),
-    r: common_vendor.o(($event) => $data.formData.gender = $event),
-    s: common_vendor.p({
+    s: common_vendor.o(($event) => $data.formData.gender = $event),
+    t: common_vendor.p({
       localdata: $data.genderOptions,
       modelValue: $data.formData.gender
     }),
-    t: common_vendor.p({
+    v: common_vendor.p({
       label: "性别",
       required: true
     }),
-    v: common_vendor.o(($event) => $data.formData.phone = $event),
-    w: common_vendor.p({
+    w: common_vendor.o(($event) => $data.formData.phone = $event),
+    x: common_vendor.p({
       type: "number",
       placeholder: "请输入电话号码",
       modelValue: $data.formData.phone
     }),
-    x: common_vendor.p({
+    y: common_vendor.p({
       label: "电话"
     }),
-    y: common_vendor.o(($event) => $data.formData.height = $event),
-    z: common_vendor.p({
+    z: common_vendor.o(($event) => $data.formData.height = $event),
+    A: common_vendor.p({
       type: "number",
       placeholder: "请输入身高(cm)",
       modelValue: $data.formData.height
     }),
-    A: common_vendor.p({
+    B: common_vendor.p({
       label: "身高(cm)"
     }),
-    B: common_vendor.o($options.calculateBMI),
-    C: common_vendor.o(($event) => $data.formData.weight = $event),
-    D: common_vendor.p({
+    C: common_vendor.o($options.calculateBMI),
+    D: common_vendor.o(($event) => $data.formData.weight = $event),
+    E: common_vendor.p({
       type: "digit",
       placeholder: "请输入体重(kg)",
       modelValue: $data.formData.weight
     }),
-    E: common_vendor.p({
+    F: common_vendor.p({
       label: "体重(kg)"
     }),
-    F: common_vendor.o(($event) => $data.formData.bmi = $event),
-    G: common_vendor.p({
+    G: common_vendor.o(($event) => $data.formData.bmi = $event),
+    H: common_vendor.p({
       type: "text",
       disabled: true,
       modelValue: $data.formData.bmi
     }),
-    H: common_vendor.p({
+    I: common_vendor.p({
       label: "BMI"
     }),
-    I: common_vendor.o(($event) => $data.formData.bloodPressure = $event),
-    J: common_vendor.p({
+    J: common_vendor.o(($event) => $data.formData.bloodPressure = $event),
+    K: common_vendor.p({
       type: "text",
       placeholder: "例如: 120/80",
       modelValue: $data.formData.bloodPressure
     }),
-    K: common_vendor.p({
+    L: common_vendor.p({
       label: "血压(mmHg)"
     }),
-    L: common_vendor.o(($event) => $data.formData.basicDisease = $event),
-    M: common_vendor.p({
+    M: common_vendor.o(($event) => $data.formData.basicDisease = $event),
+    N: common_vendor.p({
       type: "textarea",
       placeholder: "请输入基础疾病信息",
       modelValue: $data.formData.basicDisease
     }),
-    N: common_vendor.p({
+    O: common_vendor.p({
       label: "基础疾病"
     }),
-    O: common_vendor.o((...args) => $options.submitForm && $options.submitForm(...args)),
-    P: common_vendor.sr("form", "5f7f6c12-0"),
-    Q: common_vendor.p({
+    P: common_vendor.o((...args) => $options.submitForm && $options.submitForm(...args)),
+    Q: common_vendor.sr("form", "7eb2cfe4-0"),
+    R: common_vendor.p({
       modelValue: $data.formData
     })
-  });
+  }));
 }
 const MiniProgramPage = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render]]);
 wx.createPage(MiniProgramPage);

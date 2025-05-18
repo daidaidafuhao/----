@@ -1,0 +1,6 @@
+{
+	"timeout": 10,
+	"memorySize": 256,
+	"triggers": [],
+	"description": "页面配置管理服务，提供页面显示/隐藏的配置管理功能"
+} 

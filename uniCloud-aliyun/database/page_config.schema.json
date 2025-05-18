@@ -1,0 +1,40 @@
+{
+	"bsonType": "object",
+	"required": ["pageId", "isVisible"],
+	"permission": {
+		"read": true,
+		"create": false,
+		"update": false,
+		"delete": false
+	},
+	"properties": {
+		"_id": {
+			"description": "ID，系统自动生成"
+		},
+		"pageId": {
+			"bsonType": "string",
+			"description": "页面唯一标识",
+			"label": "页面ID"
+		},
+		"isVisible": {
+			"bsonType": "bool",
+			"description": "页面是否可见",
+			"label": "是否可见",
+			"defaultValue": false
+		},
+		"createTime": {
+			"bsonType": "timestamp",
+			"description": "创建时间",
+			"defaultValue": {
+				"$env": "now"
+			}
+		},
+		"updateTime": {
+			"bsonType": "timestamp",
+			"description": "更新时间",
+			"defaultValue": {
+				"$env": "now"
+			}
+		}
+	}
+} 

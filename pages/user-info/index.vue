@@ -1,81 +1,86 @@
 <template>
 	<view class="container">
-		<view class="header">
-			<text class="title">个人信息</text>
+		<view v-if="!isPageVisible" class="disabled-message">
+			<text class="disabled-text">个人信息功能已废弃</text>
 		</view>
-		
-		<!-- 未登录时显示登录界面 -->
-		<view v-if="!isLoggedIn" class="login-container">
-			<view class="avatar-placeholder">
-				<image src="/static/icons/user-avatar-placeholder.png" mode="aspectFill"></image>
-			</view>
-			<view class="login-text">未登录，请先登录</view>
-			<button type="primary" class="login-button" @click="handleWechatLogin">微信登录</button>
-		</view>
-		
-		<!-- 已登录时显示用户信息 -->
 		<view v-else>
-			<!-- 用户基本信息 -->
-			<view class="user-info-card">
-				<view class="user-avatar">
-					<image :src="userInfo.avatarUrl || '/static/icons/user-avatar-placeholder.png'" mode="aspectFill"></image>
-				</view>
-				<view class="user-basic-info">
-					<view class="user-nickname">{{userInfo.nickName || '微信用户'}}</view>
-				</view>
+			<view class="header">
+				<text class="title">个人信息</text>
 			</view>
 			
-			<!-- 个人信息表单 -->
-			<view class="form-container">
-				<uni-forms :modelValue="formData" ref="form">
-					<uni-forms-item label="姓名" required>
-						<uni-easyinput type="text" v-model="formData.name" placeholder="请输入姓名" />
-					</uni-forms-item>
-					
-					<uni-forms-item label="联系方式">
-						<uni-easyinput type="text" v-model="formData.contactMethod" placeholder="请输入联系方式" />
-					</uni-forms-item>
-					
-					<uni-forms-item label="联系人">
-						<uni-easyinput type="text" v-model="formData.contactPerson" placeholder="请输入联系人姓名" />
-					</uni-forms-item>
-					
-					<uni-forms-item label="备注">
-						<uni-easyinput type="textarea" v-model="formData.notes" placeholder="请输入备注信息" />
-					</uni-forms-item>
-					
-					<uni-forms-item label="性别" required>
-						<uni-data-checkbox v-model="formData.gender" :localdata="genderOptions" />
-					</uni-forms-item>
-					
-					<uni-forms-item label="电话">
-						<uni-easyinput type="number" v-model="formData.phone" placeholder="请输入电话号码" />
-					</uni-forms-item>
-					
-					<uni-forms-item label="身高(cm)">
-						<uni-easyinput type="number" v-model="formData.height" placeholder="请输入身高(cm)" />
-					</uni-forms-item>
-					
-					<uni-forms-item label="体重(kg)">
-						<uni-easyinput type="digit" v-model="formData.weight" placeholder="请输入体重(kg)" @input="calculateBMI" />
-					</uni-forms-item>
-					
-					<uni-forms-item label="BMI">
-						<uni-easyinput type="text" v-model="formData.bmi" disabled />
-					</uni-forms-item>
-					
-					<uni-forms-item label="血压(mmHg)">
-						<uni-easyinput type="text" v-model="formData.bloodPressure" placeholder="例如: 120/80" />
-					</uni-forms-item>
-					
-					<uni-forms-item label="基础疾病">
-						<uni-easyinput type="textarea" v-model="formData.basicDisease" placeholder="请输入基础疾病信息" />
-					</uni-forms-item>
-					
-					<view class="form-button">
-						<button type="primary" @click="submitForm">保存</button>
+			<!-- 未登录时显示登录界面 -->
+			<view v-if="!isLoggedIn" class="login-container">
+				<view class="avatar-placeholder">
+					<image src="/static/icons/user-avatar-placeholder.png" mode="aspectFill"></image>
+				</view>
+				<view class="login-text">未登录，请先登录</view>
+				<button type="primary" class="login-button" @click="handleWechatLogin">微信登录</button>
+			</view>
+			
+			<!-- 已登录时显示用户信息 -->
+			<view v-else>
+				<!-- 用户基本信息 -->
+				<view class="user-info-card">
+					<view class="user-avatar">
+						<image :src="userInfo.avatarUrl || '/static/icons/user-avatar-placeholder.png'" mode="aspectFill"></image>
 					</view>
-				</uni-forms>
+					<view class="user-basic-info">
+						<view class="user-nickname">{{userInfo.nickName || '微信用户'}}</view>
+					</view>
+				</view>
+				
+				<!-- 个人信息表单 -->
+				<view class="form-container">
+					<uni-forms :modelValue="formData" ref="form">
+						<uni-forms-item label="姓名" required>
+							<uni-easyinput type="text" v-model="formData.name" placeholder="请输入姓名" />
+						</uni-forms-item>
+						
+						<uni-forms-item label="联系方式">
+							<uni-easyinput type="text" v-model="formData.contactMethod" placeholder="请输入联系方式" />
+						</uni-forms-item>
+						
+						<uni-forms-item label="联系人">
+							<uni-easyinput type="text" v-model="formData.contactPerson" placeholder="请输入联系人姓名" />
+						</uni-forms-item>
+						
+						<uni-forms-item label="备注">
+							<uni-easyinput type="textarea" v-model="formData.notes" placeholder="请输入备注信息" />
+						</uni-forms-item>
+						
+						<uni-forms-item label="性别" required>
+							<uni-data-checkbox v-model="formData.gender" :localdata="genderOptions" />
+						</uni-forms-item>
+						
+						<uni-forms-item label="电话">
+							<uni-easyinput type="number" v-model="formData.phone" placeholder="请输入电话号码" />
+						</uni-forms-item>
+						
+						<uni-forms-item label="身高(cm)">
+							<uni-easyinput type="number" v-model="formData.height" placeholder="请输入身高(cm)" />
+						</uni-forms-item>
+						
+						<uni-forms-item label="体重(kg)">
+							<uni-easyinput type="digit" v-model="formData.weight" placeholder="请输入体重(kg)" @input="calculateBMI" />
+						</uni-forms-item>
+						
+						<uni-forms-item label="BMI">
+							<uni-easyinput type="text" v-model="formData.bmi" disabled />
+						</uni-forms-item>
+						
+						<uni-forms-item label="血压(mmHg)">
+							<uni-easyinput type="text" v-model="formData.bloodPressure" placeholder="例如: 120/80" />
+						</uni-forms-item>
+						
+						<uni-forms-item label="基础疾病">
+							<uni-easyinput type="textarea" v-model="formData.basicDisease" placeholder="请输入基础疾病信息" />
+						</uni-forms-item>
+						
+						<view class="form-button">
+							<button type="primary" @click="submitForm">保存</button>
+						</view>
+					</uni-forms>
+				</view>
 			</view>
 		</view>
 	</view>
@@ -88,6 +93,7 @@
 	export default {
 		data() {
 			return {
+				isPageVisible: false, // 控制页面显示/隐藏
 				isLoggedIn: false,
 				userInfo: null,
 				openid: '',
@@ -111,6 +117,9 @@
 			}
 		},
 		onLoad() {
+			// 获取页面配置
+			this.getPageConfig();
+			
 			// 检查登录状态，如果未登录则重定向到登录页面
 			if (!checkLoginAndRedirect()) {
 				return; // 用户未登录，已重定向到登录页面
@@ -120,6 +129,9 @@
 			this.initPageData();
 		},
 		onShow() {
+			// 获取页面配置
+			this.getPageConfig();
+			
 			// 每次页面显示时检查登录状态
 			if (!checkLoginAndRedirect()) {
 				return; // 用户未登录，已重定向到登录页面
@@ -129,6 +141,33 @@
 			this.initPageData();
 		},
 		methods: {
+			// 获取页面配置
+			async getPageConfig() {
+				try {
+					const result = await uniCloud.callFunction({
+						name: 'page-config',
+						data: {
+							action: 'getConfig',
+							params: {
+								pageId: 'user-info'
+							}
+						}
+					});
+					
+					if(result.result.code === 0) {
+						console.log( "页面配置",result.result.data.isVisible);
+						
+						this.isPageVisible = result.result.data.isVisible;
+					} else {
+						console.error('获取页面配置失败:', result.result.message);
+						this.isPageVisible = false; // 默认隐藏
+					}
+				} catch(error) {
+					console.error('获取页面配置出错:', error);
+					this.isPageVisible = false; // 默认隐藏
+				}
+			},
+			
 			// 初始化页面数据
 			initPageData() {
 				const loginState = getWechatLoginState();
@@ -328,6 +367,20 @@
 <style>
 	.container {
 		padding: 20px;
+	}
+	
+	.disabled-message {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		height: 100vh;
+		background-color: #f5f5f5;
+	}
+	
+	.disabled-text {
+		font-size: 18px;
+		color: #999;
+		text-align: center;
 	}
 	
 	.header {

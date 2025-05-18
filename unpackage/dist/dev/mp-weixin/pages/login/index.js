@@ -45,10 +45,22 @@ const _sfc_main = {
                   icon: "success"
                 });
                 const isAdmin = res2.result.data.isAdmin;
+                common_vendor.index.__f__("log", "at pages/login/index.vue:76", "是否为管理员:", isAdmin);
                 setTimeout(() => {
                   if (isAdmin) {
-                    common_vendor.index.reLaunch({
-                      url: "/pages/admin/index"
+                    common_vendor.index.showActionSheet({
+                      itemList: ["管理页面", "填报页面"],
+                      success: (res3) => {
+                        if (res3.tapIndex === 0) {
+                          common_vendor.index.reLaunch({
+                            url: "/pages/admin/index"
+                          });
+                        } else {
+                          common_vendor.index.switchTab({
+                            url: "/pages/data-entry/index"
+                          });
+                        }
+                      }
                     });
                   } else {
                     common_vendor.index.switchTab({
@@ -58,7 +70,7 @@ const _sfc_main = {
                 }, 1500);
               } else {
                 common_vendor.index.hideLoading();
-                common_vendor.index.__f__("error", "at pages/login/index.vue:94", "获取openid失败", res2.result);
+                common_vendor.index.__f__("error", "at pages/login/index.vue:108", "获取openid失败", res2.result);
                 common_vendor.index.showToast({
                   title: "登录失败: " + (((_a = res2.result) == null ? void 0 : _a.msg) || "未知错误"),
                   icon: "none"
@@ -68,7 +80,7 @@ const _sfc_main = {
             },
             fail: (err) => {
               common_vendor.index.hideLoading();
-              common_vendor.index.__f__("error", "at pages/login/index.vue:104", "云函数调用失败", err);
+              common_vendor.index.__f__("error", "at pages/login/index.vue:118", "云函数调用失败", err);
               common_vendor.index.showToast({
                 title: "登录失败，请检查网络" + err.errMsg,
                 icon: "none"
@@ -79,7 +91,7 @@ const _sfc_main = {
         },
         fail: (err) => {
           common_vendor.index.hideLoading();
-          common_vendor.index.__f__("error", "at pages/login/index.vue:115", "微信登录失败", err);
+          common_vendor.index.__f__("error", "at pages/login/index.vue:129", "微信登录失败", err);
           common_vendor.index.showToast({
             title: "登录失败，请重试",
             icon: "none"
